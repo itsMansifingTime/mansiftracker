@@ -12,13 +12,15 @@ export default function Home() {
           </h1>
           <p className="mt-3 max-w-xl text-zinc-400">
             Live craft calculator (Bazaar + CoflNet) and a sold-auction log
-            backed by Supabase. Tracking uses the short Hypixel{" "}
+            backed by Supabase. Run locally with{" "}
+            <code className="rounded bg-zinc-800 px-1 text-sm">npm run dev</code>
+            . Tracking uses Hypixel’s short{" "}
             <code className="rounded bg-zinc-800 px-1 text-sm">auctions_ended</code>{" "}
-            window — run{" "}
+            window — see Tracker for{" "}
             <code className="rounded bg-zinc-800 px-1 text-sm">
-              /api/track-sales
-            </code>{" "}
-            on a schedule.
+              npm run track:local
+            </code>
+            .
           </p>
         </div>
         <div className="flex flex-wrap gap-4">

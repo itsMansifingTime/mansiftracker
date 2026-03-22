@@ -73,15 +73,19 @@ export default function TrackerPage() {
             Sold Hyperion tracker
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-zinc-500">
-            Hypixel only exposes ended auctions for the last ~60 seconds. Call{" "}
-            <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs text-zinc-300">
-              /api/track-sales
+            Hypixel only exposes ended auctions for the last ~60 seconds. With
+            the app running locally (
+            <code className="rounded bg-zinc-800 px-1 text-xs">npm run dev</code>
+            ), use &quot;Run track&quot; here, or in another terminal run{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">
+              npm run track:local
             </code>{" "}
-            on a schedule (e.g. Vercel Cron on Pro, or an external cron/Uptime
-            pinger on Hobby). Vercel Hobby allows at most one cron run per day;
-            this repo’s{" "}
-            <code className="rounded bg-zinc-800 px-1 text-xs">vercel.json</code>{" "}
-            uses daily 00:00 UTC. Use &quot;Run track&quot; for manual checks.
+            (optional username:{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">
+              npm run track:local -- name
+            </code>
+            ). For repeated checks, point Task Scheduler or any cron at that
+            command while the dev server stays up.
           </p>
         </div>
 

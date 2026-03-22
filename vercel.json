@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/track-sales?username=bowpotato",
-      "schedule": "0 0 * * *"
-    }
-  ]
-}
