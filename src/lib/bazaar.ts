@@ -33,7 +33,7 @@ export async function fetchBazaar(): Promise<BazaarResponse> {
   return data;
 }
 
-/** Spec: instant sell = buy_summary[0] (per-unit). */
+/** Instant sell to buy orders = buy_summary[0] (per-unit). */
 export function bazaarInstantSell(product: BazaarProduct | undefined): number {
   if (!product?.buy_summary?.length) return 0;
   return product.buy_summary[0].pricePerUnit;

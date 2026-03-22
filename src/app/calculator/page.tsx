@@ -79,8 +79,11 @@ export default function CalculatorPage() {
             Hyperion craft calculator
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Bazaar prices use instant sell (buy order top). Handle uses CoflNet
-            lowest BIN. Cached ~45–60s on the server.
+            Bazaar uses the top buy order (
+            <code className="rounded bg-zinc-800 px-1 text-xs">
+              buy_summary[0]
+            </code>
+            ). Handle uses CoflNet lowest BIN. Cached ~45–60s on the server.
           </p>
         </div>
 

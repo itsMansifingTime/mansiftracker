@@ -19,28 +19,28 @@ const ENCHANTS: { key: keyof CalculatorOptions; id: string; label: string }[] =
     },
     {
       key: "includeVampirism",
-      id: "ENCHANTMENT_VAMPIRISM_5",
-      label: "Vampirism V",
+      id: "ENCHANTMENT_VAMPIRISM_6",
+      label: "Vampirism VI",
     },
     {
       key: "includeSharpness",
-      id: "ENCHANTMENT_SHARPNESS_7",
-      label: "Sharpness VII",
+      id: "ENCHANTMENT_SHARPNESS_6",
+      label: "Sharpness VI",
     },
     {
       key: "includeExperience",
-      id: "ENCHANTMENT_EXPERIENCE_5",
-      label: "Experience V",
+      id: "ENCHANTMENT_EXPERIENCE_4",
+      label: "Experience IV",
     },
     {
       key: "includeGiantKiller",
-      id: "ENCHANTMENT_GIANT_KILLER_7",
-      label: "Giant Killer VII",
+      id: "ENCHANTMENT_GIANT_KILLER_6",
+      label: "Giant Killer VI",
     },
     {
       key: "includeEnderSlayer",
-      id: "ENCHANTMENT_ENDER_SLAYER_7",
-      label: "Ender Slayer VII",
+      id: "ENCHANTMENT_ENDER_SLAYER_6",
+      label: "Ender Slayer VI",
     },
     {
       key: "includeVenomous",
