@@ -1,132 +1,291 @@
-import { bazaarInstantSell, fetchBazaar, getProduct } from "./bazaar";
-import type { CalculatorOptions } from "./calculator-options";
+import {
+  bazaarInstantSell,
+  bazaarSellSummaryFirst,
+  fetchBazaar,
+  getProduct,
+} from "./bazaar";
+import {
+  ENCHANT_DROPDOWNS,
+  HANDLE_DEFAULT_PCT_UNDER_BIN,
+  HOT_POTATO_BOOKS_COUNT,
+  SOCKETED_SAPPHIRE_COUNT,
+  type CalculatorOptions,
+} from "./calculator-options";
+import { cumulativeRegularStarCosts } from "./hyperion-stars";
 import { fetchLowestNecronBin } from "./coflnet";
+import {
+  HYPERION_SLOT_UNLOCK_RECIPES,
+  hyperionSlotUnlockCost,
+} from "./gemstone-slots";
 
 export type { CalculatorOptions } from "./calculator-options";
 export {
   DEFAULT_CALCULATOR_OPTIONS,
+  ENCHANT_DROPDOWNS,
   TRACKER_SNAPSHOT_OPTIONS,
 } from "./calculator-options";
 
 export type CostLine = { label: string; cost: number };
 
-const ENCHANTS: { key: keyof CalculatorOptions; id: string; label: string }[] =
-  [
-    {
-      key: "includeUltimateWise",
-      id: "ENCHANTMENT_ULTIMATE_WISE_5",
-      label: "Ultimate Wise V",
-    },
-    {
-      key: "includeVampirism",
-      id: "ENCHANTMENT_VAMPIRISM_6",
-      label: "Vampirism VI",
-    },
-    {
-      key: "includeSharpness",
-      id: "ENCHANTMENT_SHARPNESS_6",
-      label: "Sharpness VI",
-    },
-    {
-      key: "includeExperience",
-      id: "ENCHANTMENT_EXPERIENCE_4",
-      label: "Experience IV",
-    },
-    {
-      key: "includeGiantKiller",
-      id: "ENCHANTMENT_GIANT_KILLER_6",
-      label: "Giant Killer VI",
-    },
-    {
-      key: "includeEnderSlayer",
-      id: "ENCHANTMENT_ENDER_SLAYER_6",
-      label: "Ender Slayer VI",
-    },
-    {
-      key: "includeVenomous",
-      id: "ENCHANTMENT_VENOMOUS_6",
-      label: "Venomous VI",
-    },
-  ];
+export type CostSection = {
+  id: string;
+  title: string;
+  lines: CostLine[];
+  subtotalLabel: string;
+  subtotal: number;
+};
 
-const SAPPHIRE_SLOTS = 3;
+const MASTER_STAR_IDS = [
+  "FIRST_MASTER_STAR",
+  "SECOND_MASTER_STAR",
+  "THIRD_MASTER_STAR",
+  "FOURTH_MASTER_STAR",
+  "FIFTH_MASTER_STAR",
+] as const;
 
+const WITHER_CATALYST_COUNT = 24;
+const LASR_EYE_COUNT = 8;
+
+function sumSection(lines: CostLine[]): number {
+  return lines.reduce((s, l) => s + l.cost, 0);
+}
+
+function tierLabel(
+  row: (typeof ENCHANT_DROPDOWNS)[number],
+  tier: number
+): string {
+  const opt = row.options.find((o) => o.value === tier);
+  return opt ? `${row.label} ${opt.label === "None" ? "" : opt.label}`.trim() : row.label;
+}
+
+export type ComputeCraftCostResult = {
+  sections: CostSection[];
+  total: number;
+  necronLowestBin: number;
+  handleAutoCoins: number;
+};
+
+/**
+ * @param handleOverrideCoins — if non-null, used as handle line cost; otherwise
+ *   lowest BIN × (1 − {@link HANDLE_DEFAULT_PCT_UNDER_BIN}%).
+ */
 export async function computeCraftCost(
-  options: CalculatorOptions
-): Promise<{ lines: CostLine[]; total: number }> {
+  options: CalculatorOptions,
+  handleOverrideCoins: number | null = null
+): Promise<ComputeCraftCostResult> {
   const [bazaar, necronBin] = await Promise.all([
     fetchBazaar(),
     fetchLowestNecronBin(),
   ]);
 
   const products = bazaar.products;
-  const lines: CostLine[] = [];
+  const sections: CostSection[] = [];
 
-  lines.push({
-    label: "Necron's Handle (lowest BIN)",
-    cost: necronBin,
+  const handleAutoCoins = Math.round(
+    necronBin * (1 - HANDLE_DEFAULT_PCT_UNDER_BIN / 100)
+  );
+  const useOverride =
+    handleOverrideCoins !== null && Number.isFinite(handleOverrideCoins);
+  const handleCost = useOverride
+    ? Math.max(0, Math.round(handleOverrideCoins as number))
+    : handleAutoCoins;
+  const handleLabel = useOverride
+    ? "Handle (custom)"
+    : `Handle (${HANDLE_DEFAULT_PCT_UNDER_BIN}% under lowest BIN)`;
+
+  // --- Hyperion Craft Cost ---
+  const hyperionLines: CostLine[] = [
+    { label: handleLabel, cost: handleCost },
+    {
+      label: "Wither Catalyst",
+      cost:
+        bazaarInstantSell(getProduct(products, "WITHER_CATALYST")) *
+        WITHER_CATALYST_COUNT,
+    },
+    {
+      label: "L.A.S.R Eye",
+      cost:
+        bazaarInstantSell(getProduct(products, "GIANT_FRAGMENT_LASER")) *
+        LASR_EYE_COUNT,
+    },
+  ];
+
+  const hotPotatoUnit = bazaarInstantSell(
+    getProduct(products, "HOT_POTATO_BOOK")
+  );
+  hyperionLines.push({
+    label: `Hot Potato Book (×${HOT_POTATO_BOOKS_COUNT})`,
+    cost: hotPotatoUnit * HOT_POTATO_BOOKS_COUNT,
+  });
+  if (options.includeFumingPotatoBook) {
+    hyperionLines.push({
+      label: "Fuming Potato Book",
+      cost: bazaarInstantSell(getProduct(products, "FUMING_POTATO_BOOK")),
+    });
+  }
+  sections.push({
+    id: "hyperion",
+    title: "Hyperion Craft Cost",
+    lines: hyperionLines,
+    subtotalLabel: "Total Hyperion Craft Cost",
+    subtotal: sumSection(hyperionLines),
   });
 
-  const wither = bazaarInstantSell(getProduct(products, "WITHER_CATALYST"));
-  lines.push({
-    label: "Wither Catalyst (bazaar instant sell)",
-    cost: wither,
+  // --- Enchanted ---
+  const enchantLines: CostLine[] = [];
+
+  const slider = Math.min(Math.max(Math.floor(options.starCount), 0), 10);
+  /** 0–5: regular gold ★ (Wither Essence). 6–10: always 5 regular + (slider−5) master ★. */
+  const regularCount = Math.min(slider, 5);
+  const masterCount = Math.min(Math.max(slider - 5, 0), MASTER_STAR_IDS.length);
+
+  const witherProduct = getProduct(products, "ESSENCE_WITHER");
+  /** Buy essence from sell orders — sell_summary[0]. */
+  const witherPerUnit = bazaarSellSummaryFirst(witherProduct);
+  const { essence: essenceTotal, coins: starCoins } =
+    cumulativeRegularStarCosts(regularCount);
+  const regularStarsCost =
+    Math.round(witherPerUnit * essenceTotal) + starCoins;
+
+  let masterStarsCost = 0;
+  for (let i = 0; i < masterCount; i++) {
+    masterStarsCost += bazaarInstantSell(
+      getProduct(products, MASTER_STAR_IDS[i])
+    );
+  }
+
+  const starsTotalCost = regularStarsCost + masterStarsCost;
+  const starsLabel =
+    slider === 0
+      ? "Stars (0/10, off)"
+      : slider <= 5
+        ? `Stars (${slider}/10, regular)`
+        : `Stars (${slider}/10, 5 regular + ${masterCount} master)`;
+
+  enchantLines.push({
+    label: starsLabel,
+    cost: starsTotalCost,
   });
 
-  const lasr = bazaarInstantSell(getProduct(products, "GIANT_FRAGMENT_LASER"));
-  lines.push({
-    label: "L.A.S.R.'s Eye (GIANT_FRAGMENT_LASER, instant sell)",
-    cost: lasr,
-  });
-
-  for (const e of ENCHANTS) {
-    if (!options[e.key]) continue;
-    const p = getProduct(products, e.id);
-    lines.push({
-      label: `${e.label} (${e.id})`,
-      cost: bazaarInstantSell(p),
+  if (options.includeTitanics) {
+    enchantLines.push({
+      label: "Titanics",
+      cost: bazaarInstantSell(getProduct(products, "TITANIC_EXP_BOTTLE")),
     });
   }
 
-  if (options.gemsUnlocked) {
-    if (options.usePerfectSapphire) {
-      const gem = bazaarInstantSell(getProduct(products, "PERFECT_SAPPHIRE_GEM"));
-      lines.push({
-        label: `Perfect Sapphire ×${SAPPHIRE_SLOTS}`,
-        cost: gem * SAPPHIRE_SLOTS,
-      });
-    } else if (options.useFlawlessSapphire) {
-      const gem = bazaarInstantSell(
-        getProduct(products, "FLAWLESS_SAPPHIRE_GEM")
-      );
-      lines.push({
-        label: `Flawless Sapphire ×${SAPPHIRE_SLOTS}`,
-        cost: gem * SAPPHIRE_SLOTS,
-      });
-    }
+  if (options.includeRecomb) {
+    enchantLines.push({
+      label: "Recomb",
+      cost: bazaarInstantSell(getProduct(products, "RECOMBOBULATOR_3000")),
+    });
   }
 
+  for (const row of ENCHANT_DROPDOWNS) {
+    const tier = options[row.key] as number;
+    if (tier <= 0) continue;
+    const id = `ENCHANTMENT_${row.prefix}_${tier}`;
+    enchantLines.push({
+      label: tierLabel(row, tier),
+      cost: bazaarInstantSell(getProduct(products, id)),
+    });
+  }
+
+  sections.push({
+    id: "enchanted",
+    title: "Enchanted Hyperion Craft Cost",
+    lines: enchantLines,
+    subtotalLabel: "Total Enchanted Hyperion Craft Cost",
+    subtotal: sumSection(enchantLines),
+  });
+
+  // --- Gemmed ---
+  const slotsOn = options.gemSlotsUnlocked;
+  const flawlessCost =
+    slotsOn && options.gemSapphire === "flawless"
+      ? bazaarInstantSell(getProduct(products, "FLAWLESS_SAPPHIRE_GEM")) *
+        SOCKETED_SAPPHIRE_COUNT
+      : 0;
+  const perfectCost =
+    slotsOn && options.gemSapphire === "perfect"
+      ? bazaarInstantSell(getProduct(products, "PERFECT_SAPPHIRE_GEM")) *
+        SOCKETED_SAPPHIRE_COUNT
+      : 0;
+
+  const gemLines: CostLine[] = [
+    {
+      label: HYPERION_SLOT_UNLOCK_RECIPES[0].label,
+      cost: slotsOn
+        ? hyperionSlotUnlockCost(
+            HYPERION_SLOT_UNLOCK_RECIPES[0],
+            products,
+            bazaarInstantSell
+          )
+        : 0,
+    },
+    {
+      label: HYPERION_SLOT_UNLOCK_RECIPES[1].label,
+      cost: slotsOn
+        ? hyperionSlotUnlockCost(
+            HYPERION_SLOT_UNLOCK_RECIPES[1],
+            products,
+            bazaarInstantSell
+          )
+        : 0,
+    },
+    {
+      label: "Flawless",
+      cost: flawlessCost,
+    },
+    {
+      label: "Perfect",
+      cost: perfectCost,
+    },
+  ];
+
+  sections.push({
+    id: "gemmed",
+    title: "Gemmed Hyperion Craft Cost",
+    lines: gemLines,
+    subtotalLabel: "Total Gemmed Hyperion Craft Cost",
+    subtotal: sumSection(gemLines),
+  });
+
+  // --- WIMP ---
+  const wimpLines: CostLine[] = [];
   if (options.includeWitherShield) {
-    lines.push({
-      label: "Wither Shield (scroll)",
-      cost: bazaarInstantSell(getProduct(products, "WITHER_SHIELD_SCROLL")),
+    wimpLines.push({
+      label: "Wither Shield",
+      cost: bazaarSellSummaryFirst(
+        getProduct(products, "WITHER_SHIELD_SCROLL")
+      ),
     });
   }
   if (options.includeShadowWarp) {
-    lines.push({
-      label: "Shadow Warp (scroll)",
-      cost: bazaarInstantSell(getProduct(products, "SHADOW_WARP_SCROLL")),
+    wimpLines.push({
+      label: "Shadow Warp",
+      cost: bazaarSellSummaryFirst(
+        getProduct(products, "SHADOW_WARP_SCROLL")
+      ),
     });
   }
   if (options.includeImplosion) {
-    lines.push({
-      label: "Implosion (scroll)",
-      cost: bazaarInstantSell(getProduct(products, "IMPLOSION_SCROLL")),
+    wimpLines.push({
+      label: "Implosion",
+      cost: bazaarSellSummaryFirst(getProduct(products, "IMPLOSION_SCROLL")),
     });
   }
 
-  const total = lines.reduce((s, l) => s + l.cost, 0);
-  return { lines, total };
+  sections.push({
+    id: "wimp",
+    title: "WIMP Hyperion Craft Cost",
+    lines: wimpLines,
+    subtotalLabel: "Total WIMP Hyperion Craft Cost",
+    subtotal: sumSection(wimpLines),
+  });
+
+  const total = sections.reduce((s, sec) => s + sec.subtotal, 0);
+  return { sections, total, necronLowestBin: necronBin, handleAutoCoins };
 }
 
 export const AUCTION_TAX = 0.035;

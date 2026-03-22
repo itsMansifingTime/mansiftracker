@@ -4,42 +4,60 @@ import { useCallback, useEffect, useState } from "react";
 import { Nav } from "@/components/Nav";
 import {
   DEFAULT_CALCULATOR_OPTIONS,
+  ENCHANT_DROPDOWNS,
+  GEM_SAPPHIRE_OPTIONS,
+  HANDLE_DEFAULT_PCT_UNDER_BIN,
+  HOT_POTATO_BOOKS_COUNT,
   type CalculatorOptions,
 } from "@/lib/calculator-options";
-import { formatCoins } from "@/lib/format";
+import { formatCoins, parseCoinShorthand } from "@/lib/format";
+
+type CostSection = {
+  id: string;
+  title: string;
+  lines: { label: string; cost: number }[];
+  subtotalLabel: string;
+  subtotal: number;
+};
 
 type ApiResult = {
-  lines: { label: string; cost: number }[];
+  sections: CostSection[];
   totalCraftCost: number;
   desiredProfit: number;
   auctionTaxRate: number;
   requiredSellPrice: number;
+  necronLowestBin: number;
+  handleAutoCoins: number;
 };
 
-const TOGGLES: { key: keyof CalculatorOptions; label: string }[] = [
-  { key: "includeUltimateWise", label: "Ultimate Wise" },
-  { key: "includeVampirism", label: "Vampirism" },
-  { key: "includeSharpness", label: "Sharpness" },
-  { key: "includeExperience", label: "Experience" },
-  { key: "includeGiantKiller", label: "Giant Killer" },
-  { key: "includeEnderSlayer", label: "Ender Slayer" },
-  { key: "includeVenomous", label: "Venomous" },
-  { key: "gemsUnlocked", label: "Gems unlocked" },
-  { key: "useFlawlessSapphire", label: "Use Flawless Sapphire" },
-  { key: "usePerfectSapphire", label: "Use Perfect Sapphire" },
-  { key: "includeWitherShield", label: "Wither Shield" },
-  { key: "includeShadowWarp", label: "Shadow Warp" },
-  { key: "includeImplosion", label: "Implosion" },
-];
+const selectClass =
+  "mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-sky-500";
 
 export default function CalculatorPage() {
   const [opts, setOpts] = useState<CalculatorOptions>(DEFAULT_CALCULATOR_OPTIONS);
-  const [profit, setProfit] = useState(50_000_000);
+  const [handleInput, setHandleInput] = useState("");
+  const [profitInput, setProfitInput] = useState("35m");
+  const [profit, setProfit] = useState(35_000_000);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [data, setData] = useState<ApiResult | null>(null);
 
+  const profitParsed = parseCoinShorthand(profitInput);
+  const profitInvalid =
+    profitInput.trim() !== "" && profitParsed === null;
+
+  const handleTrim = handleInput.trim();
+  const handleParsed =
+    handleTrim === "" ? null : parseCoinShorthand(handleTrim);
+  const handleInvalid = handleTrim !== "" && handleParsed === null;
+
+  useEffect(() => {
+    const p = parseCoinShorthand(profitInput);
+    if (p !== null) setProfit(Math.max(0, p));
+  }, [profitInput]);
+
   const run = useCallback(async () => {
+    if (profitInvalid || handleInvalid) return;
     setLoading(true);
     setErr(null);
     try {
@@ -49,6 +67,8 @@ export default function CalculatorPage() {
         body: JSON.stringify({
           options: opts,
           desiredProfit: profit,
+          handleOverrideCoins:
+            handleTrim === "" ? null : handleParsed,
         }),
       });
       const j = await res.json();
@@ -60,14 +80,24 @@ export default function CalculatorPage() {
     } finally {
       setLoading(false);
     }
-  }, [opts, profit]);
+  }, [
+    opts,
+    profit,
+    profitInvalid,
+    handleInvalid,
+    handleTrim,
+    handleParsed,
+  ]);
 
   useEffect(() => {
     run();
   }, [run]);
 
-  function toggle(key: keyof CalculatorOptions) {
-    setOpts((o) => ({ ...o, [key]: !o[key] }));
+  function patch<K extends keyof CalculatorOptions>(
+    key: K,
+    value: CalculatorOptions[K]
+  ) {
+    setOpts((o) => ({ ...o, [key]: value }));
   }
 
   return (
@@ -79,58 +109,308 @@ export default function CalculatorPage() {
             Hyperion craft calculator
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Bazaar uses the top buy order (
+            Bazaar: most lines use{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
               buy_summary[0]
             </code>
-            ). Handle uses CoflNet lowest BIN. Cached ~45–60s on the server.
+            ; scrolls use{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">
+              sell_summary[0]
+            </code>
+            . Handle: CoflNet lowest BIN. Cached ~45–60s.
           </p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-          <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-            <h2 className="text-sm font-medium text-zinc-300">Options</h2>
-            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {TOGGLES.map((t) => (
-                <label
-                  key={t.key}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-zinc-800/80 bg-zinc-950/50 px-3 py-2 text-sm hover:border-zinc-700"
-                >
-                  <input
-                    type="checkbox"
-                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500 focus:ring-sky-500"
-                    checked={opts[t.key]}
-                    onChange={() => toggle(t.key)}
-                  />
-                  {t.label}
-                </label>
-              ))}
-            </div>
-            <div className="mt-6">
+          <div className="flex flex-col gap-4">
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
               <label className="text-sm font-medium text-zinc-300">
                 Desired profit (coins)
               </label>
               <input
-                type="number"
-                min={0}
-                className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-sky-500"
-                value={profit}
-                onChange={(e) =>
-                  setProfit(Math.max(0, Number(e.target.value) || 0))
-                }
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                spellCheck={false}
+                aria-invalid={profitInvalid}
+                className={`${selectClass} mt-1 font-mono ${
+                  profitInvalid ? "border-red-600 focus:border-red-500" : ""
+                }`}
+                value={profitInput}
+                onChange={(e) => setProfitInput(e.target.value)}
               />
-            </div>
-            <div className="mt-4 flex gap-2">
+              <p className="mt-1 text-xs text-zinc-500">
+                Use <kbd className="rounded bg-zinc-800 px-1 text-[10px]">k</kbd>
+                ,{" "}
+                <kbd className="rounded bg-zinc-800 px-1 text-[10px]">m</kbd>
+                , or{" "}
+                <kbd className="rounded bg-zinc-800 px-1 text-[10px]">b</kbd>{" "}
+                for thousands / millions / billions (e.g.{" "}
+                <span className="font-mono text-zinc-400">35m</span>,{" "}
+                <span className="font-mono text-zinc-400">1.5b</span>). Commas
+                are okay.
+              </p>
+              {profitInvalid && (
+                <p className="mt-1 text-xs text-red-400">
+                  Unrecognized format — fix the value or use a plain number.
+                </p>
+              )}
               <button
                 type="button"
                 onClick={() => run()}
-                disabled={loading}
-                className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50"
+                disabled={loading || profitInvalid || handleInvalid}
+                className="mt-4 w-full rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500 disabled:opacity-50 sm:w-auto"
               >
                 {loading ? "…" : "Recalculate"}
               </button>
-            </div>
-          </section>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">Gems</h2>
+              <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                  checked={opts.gemSlotsUnlocked}
+                  onChange={() =>
+                    patch("gemSlotsUnlocked", !opts.gemSlotsUnlocked)
+                  }
+                />
+                Slots unlocked
+              </label>
+              <div className="mt-3">
+                <label className="text-xs text-zinc-500">Sapphire</label>
+                <select
+                  className={selectClass}
+                  value={opts.gemSapphire}
+                  onChange={(e) =>
+                    patch(
+                      "gemSapphire",
+                      e.target.value as CalculatorOptions["gemSapphire"]
+                    )
+                  }
+                  disabled={!opts.gemSlotsUnlocked}
+                >
+                  {GEM_SAPPHIRE_OPTIONS.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-zinc-500">
+                  With slots unlocked, the breakdown includes ✎ and ⚔ unlock
+                  (coins + flawless gems per{" "}
+                  <a
+                    href="https://hypixel-skyblock.fandom.com/wiki/Gemstone_Slot"
+                    className="text-sky-400 underline underline-offset-2"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Gemstone Slot
+                  </a>
+                  ). Flawless/perfect lines price two socketed sapphires (✎ +
+                  ⚔, mage build).
+                </p>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">Stars</h2>
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-sm text-zinc-400">
+                  <span>Star level (0–10)</span>
+                  <span className="font-mono text-sky-300">{opts.starCount}</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={10}
+                  step={1}
+                  value={opts.starCount}
+                  onChange={(e) =>
+                    patch("starCount", Number.parseInt(e.target.value, 10))
+                  }
+                  className="mt-2 w-full accent-sky-500"
+                />
+                <p className="mt-1 text-xs text-zinc-500">
+                  One <strong className="text-zinc-400">Stars (1–10)</strong> line
+                  in the breakdown: <strong className="text-zinc-400">1–5</strong>{" "}
+                  = regular ★ (wiki essence + coins; Wither at{" "}
+                  <code className="rounded bg-zinc-800 px-1 text-[10px]">
+                    sell_summary[0]
+                  </code>
+                  ); <strong className="text-zinc-400">6–10</strong> = five regular
+                  plus master ★ (buy orders on master items).{" "}
+                  <strong className="text-zinc-400">0</strong> = off.
+                </p>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">Necron handle</h2>
+              <p className="mt-1 text-xs text-zinc-500">
+                CoflNet lowest BIN, minus{" "}
+                <span className="font-mono text-zinc-400">
+                  {HANDLE_DEFAULT_PCT_UNDER_BIN}%
+                </span>{" "}
+                by default. Leave the field empty to use that auto price, or type
+                a coin amount (k/m/b) to override.
+              </p>
+              <div className="mt-3">
+                <label className="text-xs text-zinc-500">
+                  Handle (coins, optional override)
+                </label>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="Auto"
+                  aria-invalid={handleInvalid}
+                  className={`${selectClass} mt-1 font-mono ${
+                    handleInvalid ? "border-red-600 focus:border-red-500" : ""
+                  }`}
+                  value={handleInput}
+                  onChange={(e) => setHandleInput(e.target.value)}
+                />
+                {data && (
+                  <p className="mt-1 text-xs text-zinc-500">
+                    Lowest BIN:{" "}
+                    <span className="font-mono text-zinc-400">
+                      {formatCoins(data.necronLowestBin)}
+                    </span>
+                    {" · "}Auto handle (
+                    {HANDLE_DEFAULT_PCT_UNDER_BIN}% under):{" "}
+                    <span className="font-mono text-zinc-400">
+                      {formatCoins(data.handleAutoCoins)}
+                    </span>
+                  </p>
+                )}
+                {handleInvalid && (
+                  <p className="mt-1 text-xs text-red-400">
+                    Unrecognized amount — use a number or k/m/b suffixes.
+                  </p>
+                )}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">Extras</h2>
+              <div className="mt-3 flex flex-col gap-4">
+                <p className="text-xs text-zinc-500">
+                  Hot Potato Books: always{" "}
+                  <span className="font-mono text-zinc-400">
+                    ×{HOT_POTATO_BOOKS_COUNT}
+                  </span>{" "}
+                  (max) in craft cost.
+                </p>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                      checked={opts.includeFumingPotatoBook}
+                      onChange={() =>
+                        patch(
+                          "includeFumingPotatoBook",
+                          !opts.includeFumingPotatoBook
+                        )
+                      }
+                    />
+                    Fuming Potato Book
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                      checked={opts.includeTitanics}
+                      onChange={() =>
+                        patch("includeTitanics", !opts.includeTitanics)
+                      }
+                    />
+                    Titanics
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                      checked={opts.includeRecomb}
+                      onChange={() =>
+                        patch("includeRecomb", !opts.includeRecomb)
+                      }
+                    />
+                    Recomb
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">Enchants</h2>
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {ENCHANT_DROPDOWNS.map((row) => (
+                  <div key={row.key}>
+                    <label className="text-xs text-zinc-500">{row.label}</label>
+                    <select
+                      className={selectClass}
+                      value={opts[row.key] as number}
+                      onChange={(e) =>
+                        patch(
+                          row.key,
+                          Number.parseInt(e.target.value, 10) as CalculatorOptions[typeof row.key]
+                        )
+                      }
+                    >
+                      {row.options.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+              <h2 className="text-sm font-medium text-zinc-300">WIMP scrolls</h2>
+              <div className="mt-3 flex flex-wrap gap-4">
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                    checked={opts.includeWitherShield}
+                    onChange={() =>
+                      patch("includeWitherShield", !opts.includeWitherShield)
+                    }
+                  />
+                  Wither Shield
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                    checked={opts.includeShadowWarp}
+                    onChange={() =>
+                      patch("includeShadowWarp", !opts.includeShadowWarp)
+                    }
+                  />
+                  Shadow Warp
+                </label>
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                    checked={opts.includeImplosion}
+                    onChange={() =>
+                      patch("includeImplosion", !opts.includeImplosion)
+                    }
+                  />
+                  Implosion
+                </label>
+              </div>
+            </section>
+          </div>
 
           <section className="flex flex-col gap-4">
             {err && (
@@ -140,29 +420,58 @@ export default function CalculatorPage() {
             )}
             {data && (
               <>
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
-                  <h2 className="text-sm font-medium text-zinc-300">
-                    Component costs
-                  </h2>
-                  <ul className="mt-3 max-h-72 space-y-2 overflow-y-auto text-sm">
-                    {data.lines.map((line) => (
-                      <li
-                        key={line.label}
-                        className="flex justify-between gap-4 border-b border-zinc-800/50 pb-2 last:border-0"
-                      >
-                        <span className="text-zinc-400">{line.label}</span>
-                        <span className="shrink-0 font-mono text-zinc-200">
-                          {formatCoins(line.cost)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="mt-4 flex justify-between border-t border-zinc-800 pt-3 text-sm font-semibold">
-                    <span>Total craft cost</span>
-                    <span className="font-mono text-sky-300">
-                      {formatCoins(data.totalCraftCost)}
-                    </span>
+                <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                    <div className="flex flex-1 flex-col gap-1">
+                      <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                        Total craft cost
+                      </span>
+                      <span className="font-mono text-lg font-semibold text-sky-300">
+                        {formatCoins(data.totalCraftCost)}
+                      </span>
+                    </div>
+                    <div className="hidden h-10 w-px shrink-0 bg-zinc-700 sm:block" />
+                    <div className="flex flex-1 flex-col gap-1">
+                      <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                        Required sell price (BIN)
+                      </span>
+                      <span className="font-mono text-lg font-semibold text-emerald-400">
+                        {formatCoins(data.requiredSellPrice)}
+                      </span>
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex max-h-[min(70vh,720px)] flex-col gap-4 overflow-y-auto pr-1">
+                  {data.sections.map((sec) => (
+                    <div
+                      key={sec.id}
+                      className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5"
+                    >
+                      <h2 className="text-sm font-semibold tracking-tight text-zinc-200">
+                        {sec.title}
+                      </h2>
+                      <ul className="mt-3 space-y-2 text-sm">
+                        {sec.lines.map((line, idx) => (
+                          <li
+                            key={`${sec.id}-${idx}-${line.label}`}
+                            className="flex justify-between gap-4 border-b border-zinc-800/40 pb-2 last:border-0"
+                          >
+                            <span className="text-zinc-400">{line.label}</span>
+                            <span className="shrink-0 font-mono text-zinc-200">
+                              {formatCoins(line.cost)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-3 flex justify-between border-t border-zinc-700 pt-3 text-sm font-semibold text-zinc-100">
+                        <span>{sec.subtotalLabel}</span>
+                        <span className="font-mono text-sky-300">
+                          {formatCoins(sec.subtotal)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -180,12 +489,6 @@ export default function CalculatorPage() {
                       <dt className="text-zinc-500">Auction tax</dt>
                       <dd className="font-mono text-zinc-200">
                         {(data.auctionTaxRate * 100).toFixed(1)}%
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-t border-zinc-800 pt-3 text-base font-semibold">
-                      <dt>Required sell price (BIN)</dt>
-                      <dd className="font-mono text-emerald-400">
-                        {formatCoins(data.requiredSellPrice)}
                       </dd>
                     </div>
                   </dl>

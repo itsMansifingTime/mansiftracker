@@ -39,6 +39,14 @@ export function bazaarInstantSell(product: BazaarProduct | undefined): number {
   return product.buy_summary[0].pricePerUnit;
 }
 
+/** Lowest sell order (buy from bazaar) = sell_summary[0] (per-unit). */
+export function bazaarSellSummaryFirst(
+  product: BazaarProduct | undefined
+): number {
+  if (!product?.sell_summary?.length) return 0;
+  return product.sell_summary[0].pricePerUnit;
+}
+
 export function getProduct(
   products: Record<string, BazaarProduct>,
   id: string
