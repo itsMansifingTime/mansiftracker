@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/track-sales?username=bowpotato",
-      "schedule": "* * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }

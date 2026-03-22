@@ -73,12 +73,15 @@ export default function TrackerPage() {
             Sold Hyperion tracker
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-zinc-500">
-            Hypixel only exposes ended auctions for the last ~60 seconds. Use a
-            Vercel Cron (or similar) to call{" "}
+            Hypixel only exposes ended auctions for the last ~60 seconds. Call{" "}
             <code className="rounded bg-zinc-800 px-1 py-0.5 text-xs text-zinc-300">
               /api/track-sales
             </code>{" "}
-            every minute — no browser polling to Hypixel.
+            on a schedule (e.g. Vercel Cron on Pro, or an external cron/Uptime
+            pinger on Hobby). Vercel Hobby allows at most one cron run per day;
+            this repo’s{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">vercel.json</code>{" "}
+            uses daily 00:00 UTC. Use &quot;Run track&quot; for manual checks.
           </p>
         </div>
 
