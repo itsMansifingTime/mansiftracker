@@ -21,11 +21,28 @@ export type BazaarResponse = {
   products: Record<string, BazaarProduct>;
 };
 
+const FETCH_TIMEOUT_MS = 15_000;
+
 export async function fetchBazaar(): Promise<BazaarResponse> {
   const cached = getCached<BazaarResponse>("bazaar:v2");
   if (cached) return cached;
 
-  const res = await fetch(BAZAAR_URL, { next: { revalidate: 0 } });
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(BAZAAR_URL, {
+      next: { revalidate: 0 },
+      signal: controller.signal,
+    });
+  } catch (e) {
+    clearTimeout(id);
+    if ((e as Error).name === "AbortError") {
+      throw new Error("Bazaar request timed out");
+    }
+    throw e;
+  }
+  clearTimeout(id);
   if (!res.ok) throw new Error(`Bazaar HTTP ${res.status}`);
   const data = (await res.json()) as BazaarResponse;
   if (!data.success) throw new Error("Bazaar API returned success: false");

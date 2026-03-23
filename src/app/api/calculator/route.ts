@@ -62,58 +62,23 @@ function bodyToOptions(
 
   const tiers: Pick<
     CalculatorOptions,
-    | "tierUltimateWise"
-    | "tierVampirism"
-    | "tierSharpness"
-    | "tierExperience"
-    | "tierGiantKiller"
-    | "tierEnderSlayer"
+    | "tierBane"
+    | "tierLifeSteal"
+    | "tierSmite"
     | "tierVenomous"
+    | "tierThunderlord"
   > = {
-    tierUltimateWise: d.tierUltimateWise,
-    tierVampirism: d.tierVampirism,
-    tierSharpness: d.tierSharpness,
-    tierExperience: d.tierExperience,
-    tierGiantKiller: d.tierGiantKiller,
-    tierEnderSlayer: d.tierEnderSlayer,
+    tierBane: d.tierBane,
+    tierLifeSteal: d.tierLifeSteal,
+    tierSmite: d.tierSmite,
     tierVenomous: d.tierVenomous,
+    tierThunderlord: d.tierThunderlord,
   };
 
   for (const row of ENCHANT_DROPDOWNS) {
     const allowed = row.options.map((o) => o.value);
-    let v: number;
-    switch (row.key) {
-      case "tierUltimateWise":
-        v = parseTier(b.tierUltimateWise, d.tierUltimateWise, allowed);
-        tiers.tierUltimateWise = v;
-        break;
-      case "tierVampirism":
-        v = parseTier(b.tierVampirism, d.tierVampirism, allowed);
-        tiers.tierVampirism = v;
-        break;
-      case "tierSharpness":
-        v = parseTier(b.tierSharpness, d.tierSharpness, allowed);
-        tiers.tierSharpness = v;
-        break;
-      case "tierExperience":
-        v = parseTier(b.tierExperience, d.tierExperience, allowed);
-        tiers.tierExperience = v;
-        break;
-      case "tierGiantKiller":
-        v = parseTier(b.tierGiantKiller, d.tierGiantKiller, allowed);
-        tiers.tierGiantKiller = v;
-        break;
-      case "tierEnderSlayer":
-        v = parseTier(b.tierEnderSlayer, d.tierEnderSlayer, allowed);
-        tiers.tierEnderSlayer = v;
-        break;
-      case "tierVenomous":
-        v = parseTier(b.tierVenomous, d.tierVenomous, allowed);
-        tiers.tierVenomous = v;
-        break;
-      default:
-        break;
-    }
+    const v = parseTier(b[row.key], d[row.key], allowed);
+    tiers[row.key] = v;
   }
 
   return {

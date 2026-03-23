@@ -78,17 +78,18 @@ export async function GET(req: Request) {
   for (const a of ended.auctions) {
     if (!a.bin) continue;
     if (normalizeUuid(a.seller) !== target) continue;
-    if (!itemBytesContainsHyperion(a.item_bytes)) continue;
 
     const soldPrice = Math.floor(a.price);
-    const overCraft = soldPrice - craftSnapshot;
+    const isHyperion = itemBytesContainsHyperion(a.item_bytes);
+    const craftCost = isHyperion ? craftSnapshot : 0;
+    const overCraft = soldPrice - craftCost;
 
     const { error } = await supabase.from("sold_hyperions").insert({
       auction_id: a.auction_id,
       seller_uuid: target,
       seller_name: profile.name,
       sold_price: soldPrice,
-      craft_cost_snapshot: craftSnapshot,
+      craft_cost_snapshot: craftCost,
       over_craft: overCraft,
       timestamp: new Date(a.timestamp).toISOString(),
     });

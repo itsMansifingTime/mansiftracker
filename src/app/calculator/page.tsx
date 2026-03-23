@@ -5,8 +5,8 @@ import { Nav } from "@/components/Nav";
 import {
   DEFAULT_CALCULATOR_OPTIONS,
   ENCHANT_DROPDOWNS,
-  GEM_SAPPHIRE_OPTIONS,
   HANDLE_DEFAULT_PCT_UNDER_BIN,
+  SOCKETED_SAPPHIRE_COUNT,
   HOT_POTATO_BOOKS_COUNT,
   type CalculatorOptions,
 } from "@/lib/calculator-options";
@@ -172,32 +172,58 @@ export default function CalculatorPage() {
                   type="checkbox"
                   className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
                   checked={opts.gemSlotsUnlocked}
-                  onChange={() =>
-                    patch("gemSlotsUnlocked", !opts.gemSlotsUnlocked)
-                  }
+                  onChange={() => {
+                    const next = !opts.gemSlotsUnlocked;
+                    setOpts((o) => ({
+                      ...o,
+                      gemSlotsUnlocked: next,
+                      gemSapphire: next ? "perfect" : o.gemSapphire,
+                    }));
+                  }}
                 />
                 Slots unlocked
               </label>
-              <div className="mt-3">
-                <label className="text-xs text-zinc-500">Sapphire</label>
-                <select
-                  className={selectClass}
-                  value={opts.gemSapphire}
-                  onChange={(e) =>
-                    patch(
-                      "gemSapphire",
-                      e.target.value as CalculatorOptions["gemSapphire"]
-                    )
-                  }
-                  disabled={!opts.gemSlotsUnlocked}
+              <div className="mt-3 flex flex-wrap gap-4">
+                <label
+                  className={`flex cursor-pointer items-center gap-2 text-sm ${
+                    !opts.gemSlotsUnlocked ? "cursor-not-allowed opacity-50" : ""
+                  }`}
                 >
-                  {GEM_SAPPHIRE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                <p className="mt-1 text-xs text-zinc-500">
+                  <input
+                    type="checkbox"
+                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                    checked={opts.gemSapphire === "flawless"}
+                    disabled={!opts.gemSlotsUnlocked}
+                    onChange={() =>
+                      patch(
+                        "gemSapphire",
+                        opts.gemSapphire === "flawless" ? "none" : "flawless"
+                      )
+                    }
+                  />
+                  Flawless (×{SOCKETED_SAPPHIRE_COUNT})
+                </label>
+                <label
+                  className={`flex cursor-pointer items-center gap-2 text-sm ${
+                    !opts.gemSlotsUnlocked ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                    checked={opts.gemSapphire === "perfect"}
+                    disabled={!opts.gemSlotsUnlocked}
+                    onChange={() =>
+                      patch(
+                        "gemSapphire",
+                        opts.gemSapphire === "perfect" ? "none" : "perfect"
+                      )
+                    }
+                  />
+                  Perfect (×{SOCKETED_SAPPHIRE_COUNT})
+                </label>
+              </div>
+              <p className="mt-1 text-xs text-zinc-500">
                   With slots unlocked, the breakdown includes ✎ and ⚔ unlock
                   (coins + flawless gems per{" "}
                   <a
@@ -210,8 +236,7 @@ export default function CalculatorPage() {
                   </a>
                   ). Flawless/perfect lines price two socketed sapphires (✎ +
                   ⚔, mage build).
-                </p>
-              </div>
+              </p>
             </section>
 
             <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -347,6 +372,12 @@ export default function CalculatorPage() {
 
             <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
               <h2 className="text-sm font-medium text-zinc-300">Enchants</h2>
+              <p className="mt-1 text-xs text-zinc-500">
+                Fixed: Ultimate Wise 5, Cleave 5, Critical 6, Cubism 5, Ender
+                Slayer 6, Execute 5, Experience 4, Fire Aspect 3, First Strike
+                4, Giant Killer 6, Impaling 5, Knockback 2, Lethality 6,
+                Looting 4, Luck 6, Scav 5, Sharpness 6, Vampirism 6.
+              </p>
               <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {ENCHANT_DROPDOWNS.map((row) => (
                   <div key={row.key}>
@@ -413,6 +444,11 @@ export default function CalculatorPage() {
           </div>
 
           <section className="flex flex-col gap-4">
+            {loading && !data && (
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 px-4 py-8 text-center text-sm text-zinc-400">
+                Loading prices from Bazaar & CoflNet…
+              </div>
+            )}
             {err && (
               <div className="rounded-xl border border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-200">
                 {err}

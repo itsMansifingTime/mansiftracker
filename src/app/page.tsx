@@ -31,6 +31,12 @@ export default function Home() {
             Hyperion calculator
           </Link>
           <Link
+            href="/breakdown"
+            className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800"
+          >
+            Auction breakdown
+          </Link>
+          <Link
             href="/tracker"
             className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800"
           >

@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Nav } from "@/components/Nav";
 import { formatCoins } from "@/lib/format";
+
+/** 10s = ~6 req/min, safe for Hypixel. 2s could trigger rate limits. */
+const CONTINUOUS_INTERVAL_MS = 10_000;
 
 type Row = {
   id: string;
@@ -20,6 +23,8 @@ export default function TrackerPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [trackMsg, setTrackMsg] = useState<string | null>(null);
+  const [continuous, setContinuous] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   async function loadSales() {
     setLoading(true);
@@ -48,7 +53,6 @@ export default function TrackerPage() {
   );
 
   async function triggerTrack() {
-    setTrackMsg(null);
     try {
       const res = await fetch(
         `/api/track-sales?username=${encodeURIComponent(username.trim() || "bowpotato")}`
@@ -63,6 +67,29 @@ export default function TrackerPage() {
       setTrackMsg(e instanceof Error ? e.message : "Track failed");
     }
   }
+
+  function startContinuous() {
+    setContinuous(true);
+    setTrackMsg(null);
+  }
+
+  function stopContinuous() {
+    setContinuous(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }
+
+  useEffect(() => {
+    if (!continuous) return;
+    const run = () => triggerTrack();
+    run();
+    intervalRef.current = setInterval(run, CONTINUOUS_INTERVAL_MS);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [continuous, username]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-100">
@@ -101,12 +128,29 @@ export default function TrackerPage() {
                 onChange={(e) => setUsername(e.target.value)}
               />
             </div>
+            {continuous ? (
+              <button
+                type="button"
+                onClick={stopContinuous}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
+              >
+                Stop continuous
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={startContinuous}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+              >
+                Start continuous
+              </button>
+            )}
             <button
               type="button"
               onClick={triggerTrack}
               className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-500"
             >
-              Run track (server)
+              Run track once
             </button>
             <button
               type="button"
@@ -118,6 +162,11 @@ export default function TrackerPage() {
           </div>
           {trackMsg && (
             <p className="mt-3 text-sm text-zinc-400">{trackMsg}</p>
+          )}
+          {continuous && (
+            <p className="mt-2 text-xs text-emerald-400/80">
+              Tracking every {CONTINUOUS_INTERVAL_MS / 1000}s — keep this tab open
+            </p>
           )}
         </section>
 

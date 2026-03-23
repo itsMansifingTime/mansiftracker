@@ -6,11 +6,13 @@ import {
 } from "./bazaar";
 import {
   ENCHANT_DROPDOWNS,
+  FIXED_ENCHANTS,
   HANDLE_DEFAULT_PCT_UNDER_BIN,
   HOT_POTATO_BOOKS_COUNT,
   SOCKETED_SAPPHIRE_COUNT,
   type CalculatorOptions,
 } from "./calculator-options";
+import { getEnchantCost } from "./enchant-pricing";
 import { cumulativeRegularStarCosts } from "./hyperion-stars";
 import { fetchLowestNecronBin } from "./coflnet";
 import {
@@ -181,13 +183,28 @@ export async function computeCraftCost(
     });
   }
 
+  let baseEnchantsCost = 0;
+  for (const e of FIXED_ENCHANTS) {
+    baseEnchantsCost += getEnchantCost(
+      e.prefix,
+      e.tier,
+      products,
+      bazaarInstantSell
+    );
+  }
+  enchantLines.push({ label: "Enchants (BASE)", cost: baseEnchantsCost });
+
   for (const row of ENCHANT_DROPDOWNS) {
     const tier = options[row.key] as number;
-    if (tier <= 0) continue;
-    const id = `ENCHANTMENT_${row.prefix}_${tier}`;
+    const cost = getEnchantCost(
+      row.prefix,
+      tier,
+      products,
+      bazaarInstantSell
+    );
     enchantLines.push({
       label: tierLabel(row, tier),
-      cost: bazaarInstantSell(getProduct(products, id)),
+      cost,
     });
   }
 
@@ -233,14 +250,12 @@ export async function computeCraftCost(
           )
         : 0,
     },
-    {
-      label: "Flawless",
-      cost: flawlessCost,
-    },
-    {
-      label: "Perfect",
-      cost: perfectCost,
-    },
+    ...(slotsOn
+      ? [
+          { label: "Flawless", cost: flawlessCost },
+          { label: "Perfect", cost: perfectCost },
+        ]
+      : []),
   ];
 
   sections.push({

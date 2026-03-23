@@ -21,19 +21,40 @@ export const GEM_SAPPHIRE_OPTIONS: { value: GemSapphire; label: string }[] = [
   },
 ];
 
+/** Fixed enchants always included (never change). */
+export const FIXED_ENCHANTS: { prefix: string; tier: number; label: string }[] =
+  [
+    { prefix: "ULTIMATE_WISE", tier: 5, label: "Ultimate Wise 5" },
+    { prefix: "CLEAVE", tier: 5, label: "Cleave 5" },
+    { prefix: "CRITICAL", tier: 6, label: "Critical 6" },
+    { prefix: "CUBISM", tier: 5, label: "Cubism 5" },
+    { prefix: "ENDER_SLAYER", tier: 6, label: "Ender Slayer 6" },
+    { prefix: "EXECUTE", tier: 5, label: "Execute 5" },
+    { prefix: "EXPERIENCE", tier: 4, label: "Experience 4" },
+    { prefix: "FIRE_ASPECT", tier: 3, label: "Fire Aspect 3" },
+    { prefix: "FIRST_STRIKE", tier: 4, label: "First Strike 4" },
+    { prefix: "GIANT_KILLER", tier: 6, label: "Giant Killer 6" },
+    { prefix: "IMPALING", tier: 5, label: "Impaling 5" },
+    { prefix: "KNOCKBACK", tier: 2, label: "Knockback 2" },
+    { prefix: "LETHALITY", tier: 6, label: "Lethality 6" },
+    { prefix: "LOOTING", tier: 4, label: "Looting 4" },
+    { prefix: "LUCK", tier: 6, label: "Luck 6" },
+    { prefix: "SCAVENGER", tier: 5, label: "Scav 5" },
+    { prefix: "SHARPNESS", tier: 6, label: "Sharpness 6" },
+    { prefix: "VAMPIRISM", tier: 6, label: "Vampirism 6" },
+  ];
+
 export type CalculatorOptions = {
   starCount: number;
   /** Fuming Potato Book (after HPBs; bazaar). */
   includeFumingPotatoBook: boolean;
   includeTitanics: boolean;
   includeRecomb: boolean;
-  tierUltimateWise: number;
-  tierVampirism: number;
-  tierSharpness: number;
-  tierExperience: number;
-  tierGiantKiller: number;
-  tierEnderSlayer: number;
+  tierBane: number;
+  tierLifeSteal: number;
+  tierSmite: number;
   tierVenomous: number;
+  tierThunderlord: number;
   gemSlotsUnlocked: boolean;
   gemSapphire: GemSapphire;
   includeWitherShield: boolean;
@@ -47,15 +68,13 @@ export const DEFAULT_CALCULATOR_OPTIONS: CalculatorOptions = {
   includeFumingPotatoBook: false,
   includeTitanics: true,
   includeRecomb: true,
-  tierUltimateWise: 5,
-  tierVampirism: 6,
-  tierSharpness: 6,
-  tierExperience: 4,
-  tierGiantKiller: 6,
-  tierEnderSlayer: 6,
+  tierBane: 6,
+  tierLifeSteal: 4,
+  tierSmite: 6,
   tierVenomous: 6,
+  tierThunderlord: 6,
   gemSlotsUnlocked: false,
-  gemSapphire: "flawless",
+  gemSapphire: "none",
   includeWitherShield: true,
   includeShadowWarp: true,
   includeImplosion: true,
@@ -67,13 +86,11 @@ export const TRACKER_SNAPSHOT_OPTIONS: CalculatorOptions = {
   includeFumingPotatoBook: false,
   includeTitanics: true,
   includeRecomb: true,
-  tierUltimateWise: 5,
-  tierVampirism: 6,
-  tierSharpness: 6,
-  tierExperience: 4,
-  tierGiantKiller: 6,
-  tierEnderSlayer: 6,
-  tierVenomous: 6,
+  tierBane: 7,
+  tierLifeSteal: 5,
+  tierSmite: 7,
+  tierVenomous: 7,
+  tierThunderlord: 7,
   gemSlotsUnlocked: true,
   gemSapphire: "perfect",
   includeWitherShield: true,
@@ -81,87 +98,61 @@ export const TRACKER_SNAPSHOT_OPTIONS: CalculatorOptions = {
   includeImplosion: true,
 };
 
-/** Dropdown options: value → Hypixel enchant tier (0 = off). */
+/** Dropdown options: user picks tier for variable enchants. */
 export const ENCHANT_DROPDOWNS: {
   key: keyof CalculatorOptions;
   label: string;
   prefix: string;
   options: { value: number; label: string }[];
+  /** When tier 7, use this bazaar product instead of ENCHANTMENT_prefix_7. */
+  tier7ProductId?: string;
 }[] = [
   {
-    key: "tierUltimateWise",
-    label: "Ultimate Wise",
-    prefix: "ULTIMATE_WISE",
+    key: "tierBane",
+    label: "Bane of Arthropods",
+    prefix: "BANE_OF_ARTHROPODS",
     options: [
-      { value: 0, label: "None" },
-      { value: 5, label: "V" },
-    ],
-  },
-  {
-    key: "tierVampirism",
-    label: "Vampirism",
-    prefix: "VAMPIRISM",
-    options: [
-      { value: 0, label: "None" },
-      { value: 5, label: "V" },
-      { value: 6, label: "VI" },
-    ],
-  },
-  {
-    key: "tierSharpness",
-    label: "Sharpness",
-    prefix: "SHARPNESS",
-    options: [
-      { value: 0, label: "None" },
-      { value: 4, label: "IV" },
-      { value: 5, label: "V" },
       { value: 6, label: "VI" },
       { value: 7, label: "VII" },
     ],
+    tier7ProductId: "ENSNARED_SNAIL",
   },
   {
-    key: "tierExperience",
-    label: "Experience",
-    prefix: "EXPERIENCE",
+    key: "tierLifeSteal",
+    label: "Life Steal",
+    prefix: "LIFE_STEAL",
     options: [
-      { value: 0, label: "None" },
       { value: 4, label: "IV" },
       { value: 5, label: "V" },
     ],
   },
   {
-    key: "tierGiantKiller",
-    label: "Giant Killer",
-    prefix: "GIANT_KILLER",
+    key: "tierSmite",
+    label: "Smite",
+    prefix: "SMITE",
     options: [
-      { value: 0, label: "None" },
-      { value: 4, label: "IV" },
-      { value: 5, label: "V" },
       { value: 6, label: "VI" },
       { value: 7, label: "VII" },
     ],
-  },
-  {
-    key: "tierEnderSlayer",
-    label: "Ender Slayer",
-    prefix: "ENDER_SLAYER",
-    options: [
-      { value: 0, label: "None" },
-      { value: 4, label: "IV" },
-      { value: 5, label: "V" },
-      { value: 6, label: "VI" },
-      { value: 7, label: "VII" },
-    ],
+    tier7ProductId: "SEVERED_HAND",
   },
   {
     key: "tierVenomous",
     label: "Venomous",
     prefix: "VENOMOUS",
     options: [
-      { value: 0, label: "None" },
-      { value: 4, label: "IV" },
-      { value: 5, label: "V" },
       { value: 6, label: "VI" },
+      { value: 7, label: "VII" },
+    ],
+    tier7ProductId: "FATEFUL_STINGER",
+  },
+  {
+    key: "tierThunderlord",
+    label: "Thunderlord",
+    prefix: "THUNDERLORD",
+    options: [
+      { value: 6, label: "VI" },
+      { value: 7, label: "VII" },
     ],
   },
 ];
