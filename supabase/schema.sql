@@ -73,16 +73,26 @@ alter table public.ended_auctions add column if not exists item_json jsonb;
 create index if not exists ended_auctions_item_id_idx
   on public.ended_auctions (item_id);
 
+-- ExtraAttributes slice from item_json (immutable). Used by extra_attributes + dye/skin/rune flags.
+-- Generated columns may not reference other generated columns, so dye_present etc. call this
+-- instead of referencing extra_attributes.
+create or replace function public.extra_attributes_jsonb(j jsonb)
+returns jsonb
+language sql
+immutable
+parallel safe
+as $$
+  select coalesce(
+    j #> '{i,0,tag,ExtraAttributes}',
+    j #> '{tag,ExtraAttributes}'
+  );
+$$;
+
 -- Browse filters: flat columns so PostgREST can filter reliably (nested `item_json->i->0->...`
 -- in query params is brittle; Hypixel also uses either `i[0].tag` or root `tag` shapes).
 alter table public.ended_auctions
   add column if not exists extra_attributes jsonb
-  generated always as (
-    coalesce(
-      item_json #> '{i,0,tag,ExtraAttributes}',
-      item_json #> '{tag,ExtraAttributes}'
-    )
-  ) stored;
+  generated always as (public.extra_attributes_jsonb(item_json)) stored;
 
 -- Rarity: Hypixel often omits ExtraAttributes.rarity; tier is usually encoded as § + code in tag.display.Name.
 create or replace function public.item_rarity_from_item_json(j jsonb)
@@ -138,6 +148,38 @@ create index if not exists ended_auctions_item_rarity_idx
 
 create index if not exists ended_auctions_upgrade_level_idx
   on public.ended_auctions (item_upgrade_level);
+
+-- Browse: "Dye (any) / Skin (any) / Rune (any)" — jsonb ? / runes object (reliable vs PostgREST ->> chains)
+alter table public.ended_auctions
+  add column if not exists dye_present boolean
+  generated always as (
+    coalesce(public.extra_attributes_jsonb(item_json) ? 'dye', false)
+    or coalesce(public.extra_attributes_jsonb(item_json) ? 'Dye', false)
+  ) stored;
+
+alter table public.ended_auctions
+  add column if not exists skin_present boolean
+  generated always as (
+    coalesce(public.extra_attributes_jsonb(item_json) ? 'skin', false)
+  ) stored;
+
+alter table public.ended_auctions
+  add column if not exists rune_present boolean
+  generated always as (
+    (coalesce(public.extra_attributes_jsonb(item_json)->'runes', '{}'::jsonb) <> '{}'::jsonb)
+  ) stored;
+
+create index if not exists ended_auctions_dye_present_idx
+  on public.ended_auctions (dye_present)
+  where dye_present = true;
+
+create index if not exists ended_auctions_skin_present_idx
+  on public.ended_auctions (skin_present)
+  where skin_present = true;
+
+create index if not exists ended_auctions_rune_present_idx
+  on public.ended_auctions (rune_present)
+  where rune_present = true;
 
 -- Optional: distinct filter hints for /api/browse/hints (enchant keys, modifiers, …)
 -- See browse_filter_hints.sql

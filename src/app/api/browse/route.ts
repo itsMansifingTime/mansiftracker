@@ -80,10 +80,10 @@ export async function GET(req: Request) {
 
   if (error) {
     const msg = error.message ?? "";
-    const hint = /item_rarity|extra_attributes|item_upgrade_level|PGRST204|schema cache/i.test(
+    const hint = /item_rarity|extra_attributes|item_upgrade_level|dye_present|skin_present|rune_present|PGRST204|schema cache/i.test(
       msg
     )
-      ? "Apply the latest supabase/schema.sql in the Supabase SQL editor (generated columns item_rarity, extra_attributes, item_upgrade_level). If you already ran it, reload the API schema cache in Supabase (API settings)."
+      ? "Apply the latest supabase/schema.sql (or supabase/add_dye_skin_rune_present.sql) in the Supabase SQL editor, then reload the API schema cache (Supabase → Settings → API)."
       : undefined;
     return NextResponse.json(
       { error: msg, ...(hint ? { hint } : {}) },

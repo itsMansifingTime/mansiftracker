@@ -202,6 +202,15 @@ export default function BrowsePage() {
                 <li>item_id, item_name, item_uuid, minecraft_item_id</li>
                 <li>item_json (full NBT tree), item_bytes (raw)</li>
                 <li>
+                  <code className="text-zinc-500">extra_attributes</code> (generated
+                  ExtraAttributes slice — Dye/Rune/Skin &quot;any&quot; filters query this).
+                  Optional indexes:{" "}
+                  <code className="text-zinc-500">dye_present</code>,{" "}
+                  <code className="text-zinc-500">skin_present</code>,{" "}
+                  <code className="text-zinc-500">rune_present</code> via{" "}
+                  <code className="text-zinc-500">supabase/add_dye_skin_rune_present.sql</code>
+                </li>
+                <li>
                   <code className="text-zinc-500">item_rarity</code> is derived from
                   NBT (and § codes in <code className="text-zinc-500">display.Name</code>
                   when Hypixel omits <code className="text-zinc-500">ExtraAttributes.rarity</code>

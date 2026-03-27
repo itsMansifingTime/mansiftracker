@@ -3,6 +3,14 @@
  * Uses generated column `extra_attributes` (ExtraAttributes NBT slice).
  */
 
+/** Coerce JSON values that sometimes arrive as strings (e.g. serialized booleans). */
+function parseBoolLoose(v: unknown): boolean | undefined {
+  if (typeof v === "boolean") return v;
+  if (v === "true" || v === "True" || v === "1") return true;
+  if (v === "false" || v === "False" || v === "0") return false;
+  return undefined;
+}
+
 export const RARITY_OPTIONS = [
   "COMMON",
   "UNCOMMON",
@@ -153,15 +161,16 @@ export function parseBrowseFiltersParam(raw: string | null): ActiveBrowseFilter[
 
     const v = (entry as { value?: unknown }).value;
     if (meta.kind === "bool") {
-      if (typeof v !== "boolean") continue;
-      if (id === "bin") out.push({ id: "bin", value: v });
-      else if (id === "sold") out.push({ id: "sold", value: v });
+      const b = parseBoolLoose(v);
+      if (b === undefined) continue;
+      if (id === "bin") out.push({ id: "bin", value: b });
+      else if (id === "sold") out.push({ id: "sold", value: b });
       else if (id === "recombobulated")
-        out.push({ id: "recombobulated", value: v });
-      else if (id === "soulbound") out.push({ id: "soulbound", value: v });
-      else if (id === "has_dye") out.push({ id: "has_dye", value: v });
-      else if (id === "has_rune") out.push({ id: "has_rune", value: v });
-      else if (id === "has_skin") out.push({ id: "has_skin", value: v });
+        out.push({ id: "recombobulated", value: b });
+      else if (id === "soulbound") out.push({ id: "soulbound", value: b });
+      else if (id === "has_dye") out.push({ id: "has_dye", value: b });
+      else if (id === "has_rune") out.push({ id: "has_rune", value: b });
+      else if (id === "has_skin") out.push({ id: "has_skin", value: b });
       continue;
     }
     if (meta.kind === "enum" && id === "rarity") {
@@ -237,19 +246,22 @@ export function applyBrowseFiltersToQuery(
         else q = q.is("buyer_uuid", null);
         break;
       case "has_dye":
+        // Filter on extra_attributes (no dye_present column required).
         if (f.value) {
-          q = q.not("extra_attributes->>dye", "is", null);
-          q = q.neq("extra_attributes->>dye", "");
-        } else {
           q = q.or(
-            "extra_attributes->>dye.is.null,extra_attributes->>dye.eq."
+            "extra_attributes->dye.not.is.null,extra_attributes->Dye.not.is.null"
           );
+        } else {
+          q = q
+            .is("extra_attributes->dye", null)
+            .is("extra_attributes->Dye", null);
         }
         break;
       case "has_rune":
         if (f.value) {
-          q = q.not("extra_attributes->runes", "is", null);
-          q = q.neq("extra_attributes->runes", {});
+          q = q
+            .not("extra_attributes->runes", "is", null)
+            .neq("extra_attributes->runes", "{}");
         } else {
           q = q.or(
             "extra_attributes->runes.is.null,extra_attributes->runes.eq.{}"
@@ -258,12 +270,9 @@ export function applyBrowseFiltersToQuery(
         break;
       case "has_skin":
         if (f.value) {
-          q = q.not("extra_attributes->>skin", "is", null);
-          q = q.neq("extra_attributes->>skin", "");
+          q = q.not("extra_attributes->skin", "is", null);
         } else {
-          q = q.or(
-            "extra_attributes->>skin.is.null,extra_attributes->>skin.eq."
-          );
+          q = q.is("extra_attributes->skin", null);
         }
         break;
       case "rarity":
