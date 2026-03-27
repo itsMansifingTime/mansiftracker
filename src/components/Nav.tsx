@@ -2,10 +2,12 @@ import Link from "next/link";
 
 const links = [
   { href: "/", label: "Home" },
-  { href: "/calculator", label: "Calculator" },
+  { href: "/calculator", label: "Hyperion" },
+  { href: "/terminator", label: "Terminator" },
   { href: "/breakdown", label: "Breakdown" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/tracker", label: "Tracker" },
+  { href: "/browse", label: "Browse" },
 ];
 
 export function Nav() {

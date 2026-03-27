@@ -11,8 +11,8 @@ export default function Home() {
             Hypixel SkyBlock — Hyperion tools
           </h1>
           <p className="mt-3 max-w-xl text-zinc-400">
-            Live craft calculator (Bazaar + CoflNet) and a sold-auction log
-            backed by Supabase. Run locally with{" "}
+            Live craft calculator (Bazaar + CoflNet) and an ended-auction log
+            (every sale in each Hypixel snapshot) backed by Supabase. Run locally with{" "}
             <code className="rounded bg-zinc-800 px-1 text-sm">npm run dev</code>
             . Tracking uses Hypixel’s short{" "}
             <code className="rounded bg-zinc-800 px-1 text-sm">auctions_ended</code>{" "}
@@ -31,6 +31,12 @@ export default function Home() {
             Hyperion calculator
           </Link>
           <Link
+            href="/terminator"
+            className="rounded-xl border border-sky-700/50 bg-sky-950/40 px-6 py-3 text-sm font-medium text-sky-200 transition hover:border-sky-600 hover:bg-sky-950/70"
+          >
+            Terminator calculator
+          </Link>
+          <Link
             href="/breakdown"
             className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800"
           >
@@ -40,7 +46,13 @@ export default function Home() {
             href="/tracker"
             className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800"
           >
-            Sold tracker
+            Auction tracker
+          </Link>
+          <Link
+            href="/browse"
+            className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-600 hover:bg-zinc-800"
+          >
+            Browse database
           </Link>
         </div>
       </main>

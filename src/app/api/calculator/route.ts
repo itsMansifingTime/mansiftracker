@@ -76,9 +76,10 @@ function bodyToOptions(
   };
 
   for (const row of ENCHANT_DROPDOWNS) {
+    const key = row.key as keyof typeof tiers;
     const allowed = row.options.map((o) => o.value);
-    const v = parseTier(b[row.key], d[row.key], allowed);
-    tiers[row.key] = v;
+    const v = parseTier(b[row.key], d[key], allowed);
+    tiers[key] = v;
   }
 
   return {
@@ -95,6 +96,7 @@ function bodyToOptions(
     includeWitherShield: parseBool(b.includeWitherShield, d.includeWitherShield),
     includeShadowWarp: parseBool(b.includeShadowWarp, d.includeShadowWarp),
     includeImplosion: parseBool(b.includeImplosion, d.includeImplosion),
+    scrollsInstantBuy: parseBool(b.scrollsInstantBuy, d.scrollsInstantBuy),
   };
 }
 

@@ -25,6 +25,39 @@ export type CoflAuction = {
 
 const FETCH_TIMEOUT_MS = 15_000;
 
+export async function fetchLowestJudgementBin(): Promise<number> {
+  const cached = getCached<number>("cofl:judgement_bin");
+  if (cached !== undefined) return cached;
+
+  const url =
+    "https://sky.coflnet.com/api/auctions/tag/JUDGEMENT_CORE/active/bin";
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      next: { revalidate: 0 },
+      signal: controller.signal,
+    });
+  } catch (e) {
+    clearTimeout(id);
+    if ((e as Error).name === "AbortError") {
+      throw new Error("CoflNet request timed out");
+    }
+    throw e;
+  }
+  clearTimeout(id);
+  if (!res.ok) throw new Error(`CoflNet HTTP ${res.status}`);
+  const list = (await res.json()) as CoflBinAuction[];
+  if (!Array.isArray(list) || list.length === 0) {
+    setCached("cofl:judgement_bin", 0, CACHE_MS);
+    return 0;
+  }
+  const lowest = Math.min(...list.map((a) => a.startingBid));
+  setCached("cofl:judgement_bin", lowest, CACHE_MS);
+  return lowest;
+}
+
 export async function fetchLowestNecronBin(): Promise<number> {
   const cached = getCached<number>("cofl:necron_bin");
   if (cached !== undefined) return cached;

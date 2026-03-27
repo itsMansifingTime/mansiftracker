@@ -267,27 +267,27 @@ export async function computeCraftCost(
   });
 
   // --- WIMP ---
+  /* Hypixel naming is reversed: buy_summary = sell orders (instant buy), sell_summary = buy orders */
+  const scrollPrice = options.scrollsInstantBuy
+    ? bazaarInstantSell
+    : bazaarSellSummaryFirst;
   const wimpLines: CostLine[] = [];
   if (options.includeWitherShield) {
     wimpLines.push({
       label: "Wither Shield",
-      cost: bazaarSellSummaryFirst(
-        getProduct(products, "WITHER_SHIELD_SCROLL")
-      ),
+      cost: scrollPrice(getProduct(products, "WITHER_SHIELD_SCROLL")),
     });
   }
   if (options.includeShadowWarp) {
     wimpLines.push({
       label: "Shadow Warp",
-      cost: bazaarSellSummaryFirst(
-        getProduct(products, "SHADOW_WARP_SCROLL")
-      ),
+      cost: scrollPrice(getProduct(products, "SHADOW_WARP_SCROLL")),
     });
   }
   if (options.includeImplosion) {
     wimpLines.push({
       label: "Implosion",
-      cost: bazaarSellSummaryFirst(getProduct(products, "IMPLOSION_SCROLL")),
+      cost: scrollPrice(getProduct(products, "IMPLOSION_SCROLL")),
     });
   }
 

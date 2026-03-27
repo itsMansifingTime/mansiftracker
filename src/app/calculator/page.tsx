@@ -115,9 +115,15 @@ export default function CalculatorPage() {
             </code>
             ; scrolls use{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
+              buy_summary[0]
+            </code>
+            (instant buy) or{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">
               sell_summary[0]
             </code>
-            . Handle: CoflNet lowest BIN. Cached ~45–60s.
+            (buy order) — note: Hypixel naming reversed. Toggle in WIMP section.
+            Handle: CoflNet lowest BIN.
+            Cached ~45–60s.
           </p>
         </div>
 
@@ -405,7 +411,7 @@ export default function CalculatorPage() {
 
             <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
               <h2 className="text-sm font-medium text-zinc-300">WIMP scrolls</h2>
-              <div className="mt-3 flex flex-wrap gap-4">
+              <div className="mt-3 flex flex-wrap items-center gap-4">
                 <label className="flex cursor-pointer items-center gap-2 text-sm">
                   <input
                     type="checkbox"
@@ -439,6 +445,24 @@ export default function CalculatorPage() {
                   />
                   Implosion
                 </label>
+                <span className="ml-2 border-l border-zinc-700 pl-4">
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                      checked={opts.scrollsInstantBuy}
+                      onChange={() =>
+                        patch("scrollsInstantBuy", !opts.scrollsInstantBuy)
+                      }
+                    />
+                    Instant buy
+                  </label>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    {opts.scrollsInstantBuy
+                      ? "buy_summary[0] (instant buy)"
+                      : "sell_summary[0] (buy order)"}
+                  </p>
+                </span>
               </div>
             </section>
           </div>

@@ -1,14 +1,13 @@
 /**
- * Call /api/track-sales while Next is running locally (or set TRACK_URL).
- * Usage: node scripts/track-local.mjs [username]
+ * Call /api/track-sales while Next is running (or set TRACK_URL).
+ * Logs every auction in Hypixel's auctions_ended snapshot.
+ *
  *   npm run track:local
- *   npm run track:local -- someplayer
  */
 
 const base = (process.env.TRACK_URL ?? "http://localhost:3000").replace(/\/$/, "");
-const username = process.argv[2] ?? "bowpotato";
 
-const url = `${base}/api/track-sales?username=${encodeURIComponent(username)}`;
+const url = `${base}/api/track-sales`;
 
 const res = await fetch(url);
 const text = await res.text();

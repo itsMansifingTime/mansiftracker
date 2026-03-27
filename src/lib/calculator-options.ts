@@ -60,6 +60,8 @@ export type CalculatorOptions = {
   includeWitherShield: boolean;
   includeShadowWarp: boolean;
   includeImplosion: boolean;
+  /** If true, use instant buy (sell_summary[0]); if false, use buy order (buy_summary[0]). */
+  scrollsInstantBuy: boolean;
 };
 
 export const DEFAULT_CALCULATOR_OPTIONS: CalculatorOptions = {
@@ -78,6 +80,7 @@ export const DEFAULT_CALCULATOR_OPTIONS: CalculatorOptions = {
   includeWitherShield: true,
   includeShadowWarp: true,
   includeImplosion: true,
+  scrollsInstantBuy: true,
 };
 
 /** Full build used for snapshot when logging sales. */
@@ -96,6 +99,7 @@ export const TRACKER_SNAPSHOT_OPTIONS: CalculatorOptions = {
   includeWitherShield: true,
   includeShadowWarp: true,
   includeImplosion: true,
+  scrollsInstantBuy: true,
 };
 
 /** Dropdown options: user picks tier for variable enchants. */
