@@ -183,3 +183,29 @@ create index if not exists ended_auctions_rune_present_idx
 
 -- Optional: distinct filter hints for /api/browse/hints (enchant keys, modifiers, …)
 -- See browse_filter_hints.sql
+
+-- BIN listings first seen via GET /v2/skyblock/auctions (active AH). Duplicates ignored (same auction_id).
+create table if not exists public.bin_listings (
+  auction_id text primary key,
+  seller_uuid text not null,
+  seller_profile text,
+  starting_bid bigint not null,
+  start_at timestamptz not null,
+  end_at timestamptz not null,
+  item_bytes text,
+  first_seen_at timestamptz not null default now(),
+  item_id text,
+  item_name text,
+  item_uuid text,
+  minecraft_item_id bigint,
+  item_json jsonb
+);
+
+create index if not exists bin_listings_first_seen_at_idx
+  on public.bin_listings (first_seen_at desc);
+
+create index if not exists bin_listings_seller_uuid_idx
+  on public.bin_listings (seller_uuid);
+
+create index if not exists bin_listings_item_id_idx
+  on public.bin_listings (item_id);

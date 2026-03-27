@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "track:local": "node scripts/track-local.mjs"
+    "track:local": "node scripts/track-local.mjs",
+    "track:bin": "node scripts/track-bin-local.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",

@@ -109,6 +109,23 @@ function extractFromSimplifiedRoot(
  * Decodes Hypixel `item_bytes`: base64 → gzip → NBT → full simplified tree + summary fields.
  * `fullNbt` holds everything (enchants, runes, etc.) as in NBT; summary columns duplicate a few for fast queries.
  */
+/**
+ * Hypixel `auctions_ended` sends `item_bytes` as a base64 string; active
+ * `/skyblock/auctions` sends `{ type, data }` where `data` is base64.
+ */
+export function normalizeHypixelItemBytesRaw(raw: unknown): string | null {
+  if (typeof raw === "string") return raw;
+  if (
+    raw &&
+    typeof raw === "object" &&
+    "data" in raw &&
+    typeof (raw as { data: unknown }).data === "string"
+  ) {
+    return (raw as { data: string }).data;
+  }
+  return null;
+}
+
 export async function decodeSkyblockItemBytes(
   base64: string | null | undefined
 ): Promise<DecodedItemBytes> {
