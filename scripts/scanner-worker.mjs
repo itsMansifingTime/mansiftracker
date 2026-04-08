@@ -3,8 +3,8 @@
  *
  * Env:
  *   TRACK_URL — base URL, no trailing slash (e.g. https://your-app.vercel.app)
- *   SCAN_JOBS — JSON array: [{ "path": "/api/track-bin-listings", "intervalMs": 30000 }, ...]
- *             Default single job: /api/track-bin-listings every 60s if SCAN_JOBS unset.
+ *   SCAN_JOBS — JSON array: [{ "path": "/api/track-bin-listings?skipSupabase=1", "intervalMs": 30000 }, ...]
+ *             Default single job: BIN SNIPER (skipSupabase, no bin_listings writes) every 60s if SCAN_JOBS unset.
  *
  *   Optional: CRON_SECRET — sent as Authorization: Bearer <value> if set (add the same check in API routes if you use it).
  *
@@ -45,8 +45,9 @@ if (!base) {
   process.exit(1);
 }
 
+/** Same URL as the /bin-sniper page — Hypixel scan without Supabase upserts. */
 const defaultJobs = [
-  { path: "/api/track-bin-listings", intervalMs: 60_000 },
+  { path: "/api/track-bin-listings?skipSupabase=1", intervalMs: 60_000 },
 ];
 
 let jobs;
@@ -58,7 +59,7 @@ try {
   const raw = process.env.SCAN_JOBS;
   console.error(
     "scanner-worker: SCAN_JOBS must be valid JSON (one line, double quotes). Example:",
-    `[{"path":"/api/track-bin-listings","intervalMs":30000}]`
+    `[{"path":"/api/track-bin-listings?skipSupabase=1","intervalMs":30000}]`
   );
   if (raw) console.error("scanner-worker: got:", raw.slice(0, 200));
   console.error(e);
