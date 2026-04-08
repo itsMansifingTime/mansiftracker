@@ -254,11 +254,18 @@ async function postBinDealDiscordEmbed(
   const fmt = (n: number) =>
     `${n.toLocaleString("en-US")} coins`;
 
+  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
+  const mention =
+    mentionRaw && /^\d{17,19}$/.test(mentionRaw)
+      ? `<@${mentionRaw}>`
+      : undefined;
+
   try {
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        ...(mention ? { content: mention } : {}),
         embeds: [
           {
             title: `BIN under craft: ${p.itemName}`,
