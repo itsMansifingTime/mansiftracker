@@ -1,0 +1,10 @@
+# Worker service: poll deployed Vercel API routes. Set TRACK_URL in Railway Variables.
+# If this repo is used for a web service too, use a separate Railway project or override in the dashboard.
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm install"
+
+[deploy]
+startCommand = "node scripts/scanner-worker.mjs"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

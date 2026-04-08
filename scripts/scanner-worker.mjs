@@ -7,11 +7,41 @@
  *             Default single job: /api/track-bin-listings every 60s if SCAN_JOBS unset.
  *
  *   Optional: CRON_SECRET — sent as Authorization: Bearer <value> if set (add the same check in API routes if you use it).
+ *
+ * Railway injects PORT; we listen so deploy healthchecks succeed (worker has no public HTTP otherwise).
  */
 
-const base = (process.env.TRACK_URL ?? "").replace(/\/$/, "");
+import http from "node:http";
+
+const portEnv = process.env.PORT;
+if (portEnv) {
+  const port = Number(portEnv);
+  http
+    .createServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("scanner-worker ok\n");
+    })
+    .listen(port, "0.0.0.0", () => {
+      console.log(`[scanner-worker] health listen http://0.0.0.0:${port}`);
+    });
+}
+
+console.log(
+  `[scanner-worker] node ${process.version} — set TRACK_URL in Railway Variables`
+);
+
+if (typeof globalThis.fetch !== "function") {
+  console.error(
+    "scanner-worker: Node 18+ required (global fetch). Set engines.node >=18 in package.json"
+  );
+  process.exit(1);
+}
+
+const base = (process.env.TRACK_URL ?? "").trim().replace(/\/$/, "");
 if (!base) {
-  console.error("scanner-worker: set TRACK_URL (e.g. https://your-app.vercel.app)");
+  console.error(
+    "scanner-worker: missing TRACK_URL. In Railway → Variables add TRACK_URL=https://your-app.vercel.app"
+  );
   process.exit(1);
 }
 
@@ -25,7 +55,13 @@ try {
     ? JSON.parse(process.env.SCAN_JOBS)
     : defaultJobs;
 } catch (e) {
-  console.error("scanner-worker: SCAN_JOBS must be valid JSON array", e);
+  const raw = process.env.SCAN_JOBS;
+  console.error(
+    "scanner-worker: SCAN_JOBS must be valid JSON (one line, double quotes). Example:",
+    `[{"path":"/api/track-bin-listings","intervalMs":30000}]`
+  );
+  if (raw) console.error("scanner-worker: got:", raw.slice(0, 200));
+  console.error(e);
   process.exit(1);
 }
 
