@@ -1,0 +1,24 @@
+---
+description: Hypixel bazaar API sell_summary vs buy_summary — instant buy vs instant sell (e.g. Wither Shield scroll).
+alwaysApply: true
+---
+
+# Hypixel SkyBlock Bazaar: `sell_summary` vs `buy_summary`
+
+Source: `https://api.hypixel.net/v2/skyblock/bazaar` → `products[product_id]`.
+
+**Wither Shield scroll** product id: `WITHER_SHIELD_SCROLL` (Shadow Warp / Implosion: `SHADOW_WARP_SCROLL`, `IMPLOSION_SCROLL`).
+
+**Rule:** For the same item at the same time, **instant buy price is always higher than instant sell price** (you pay more to buy now than you receive to sell now).
+
+| API field | Per-unit meaning | Player term |
+|-----------|------------------|-------------|
+| `buy_summary[0].pricePerUnit` | Price to **buy** from the bazaar **now** | **Instant buy** (higher) |
+| `sell_summary[0].pricePerUnit` | Price you get **selling** to the bazaar **now** | **Instant sell** (lower) |
+
+In this repo (legacy names — read the JSDoc in `src/lib/bazaar.ts`):
+
+- `bazaarInstantSell()` reads **`buy_summary[0]`** → **instant buy** (higher). Name is misleading.
+- `bazaarSellSummaryFirst()` reads **`sell_summary[0]`** → **instant sell** (lower).
+
+Hyperion **calculator** WIMP: `scrollsInstantBuy === true` uses `bazaarInstantSell` → **instant buy** (higher). `false` uses `bazaarSellSummaryFirst` → **instant sell** (lower).

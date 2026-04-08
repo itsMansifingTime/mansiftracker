@@ -26,7 +26,26 @@ type BrowseRow = {
 
 type DetailRow = BrowseRow & { item_json: unknown };
 
+type BinListingBrowseRow = {
+  auction_id: string;
+  seller_uuid: string;
+  seller_profile: string | null;
+  starting_bid: number;
+  start_at: string;
+  end_at: string;
+  first_seen_at: string;
+  item_id: string | null;
+  item_name: string | null;
+  item_uuid: string | null;
+  minecraft_item_id: number | null;
+  is_bin: boolean;
+};
+
+type BinListingDetailRow = BinListingBrowseRow & { item_json: unknown };
+
 type TableStat = { name: string; count: number | null; error?: string };
+
+type BrowseTab = "ended" | "active";
 
 function shortId(s: string | null | undefined, len = 8): string {
   if (!s) return "—";
@@ -39,6 +58,7 @@ function coflAuctionUrl(auctionId: string): string {
 }
 
 export default function BrowsePage() {
+  const [tab, setTab] = useState<BrowseTab>("ended");
   const [qInput, setQInput] = useState("");
   const [q, setQ] = useState("");
   const [filters, setFilters] = useState<ActiveBrowseFilter[]>([]);
@@ -56,6 +76,17 @@ export default function BrowsePage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailRow | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
+
+  const [activeRows, setActiveRows] = useState<BinListingBrowseRow[]>([]);
+  const [activeTotal, setActiveTotal] = useState(0);
+  const [activeTotalPages, setActiveTotalPages] = useState(1);
+  const [activeLoading, setActiveLoading] = useState(false);
+  const [activeErr, setActiveErr] = useState<string | null>(null);
+  const [activeExpanded, setActiveExpanded] = useState<string | null>(null);
+  const [activeDetail, setActiveDetail] = useState<BinListingDetailRow | null>(
+    null
+  );
+  const [activeDetailLoading, setActiveDetailLoading] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(() => setQ(qInput), 400);
@@ -80,6 +111,10 @@ export default function BrowsePage() {
   useEffect(() => {
     setPage(1);
   }, [q, filtersDebounced]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [tab]);
 
   const loadBrowse = useCallback(async () => {
     setLoading(true);
@@ -114,8 +149,46 @@ export default function BrowsePage() {
   }, [page, limit, q, filtersDebounced]);
 
   useEffect(() => {
+    if (tab !== "ended") return;
     loadBrowse();
-  }, [loadBrowse]);
+  }, [tab, loadBrowse]);
+
+  const loadActiveBrowse = useCallback(async () => {
+    setActiveLoading(true);
+    setActiveErr(null);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit),
+      });
+      if (q.trim()) params.set("q", q.trim());
+      const filtersPayload = serializeBrowseFiltersForApi(filtersDebounced);
+      if (filtersPayload !== "[]") params.set("filters", filtersPayload);
+      const res = await fetch(`/api/browse/bin-listings?${params}`);
+      const j = await res.json();
+      if (!res.ok) {
+        const msg = String(j.error ?? res.statusText);
+        const hint =
+          typeof j.hint === "string" && j.hint.trim()
+            ? `\n\n${j.hint.trim()}`
+            : "";
+        throw new Error(msg + hint);
+      }
+      setActiveRows(j.rows ?? []);
+      setActiveTotal(j.total ?? 0);
+      setActiveTotalPages(j.totalPages ?? 1);
+    } catch (e) {
+      setActiveErr(e instanceof Error ? e.message : "Failed to load");
+      setActiveRows([]);
+    } finally {
+      setActiveLoading(false);
+    }
+  }, [page, limit, q, filtersDebounced]);
+
+  useEffect(() => {
+    if (tab !== "active") return;
+    loadActiveBrowse();
+  }, [tab, loadActiveBrowse]);
 
   useEffect(() => {
     let cancelled = false;
@@ -157,6 +230,29 @@ export default function BrowsePage() {
     }
   }
 
+  async function openActiveDetail(auctionId: string) {
+    if (activeExpanded === auctionId) {
+      setActiveExpanded(null);
+      setActiveDetail(null);
+      return;
+    }
+    setActiveExpanded(auctionId);
+    setActiveDetailLoading(true);
+    setActiveDetail(null);
+    try {
+      const res = await fetch(
+        `/api/browse/bin-listings?auctionId=${encodeURIComponent(auctionId)}`
+      );
+      const j = await res.json();
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      setActiveDetail(j.row as BinListingDetailRow);
+    } catch {
+      setActiveDetail(null);
+    } finally {
+      setActiveDetailLoading(false);
+    }
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-100">
       <Nav />
@@ -166,14 +262,58 @@ export default function BrowsePage() {
             Database browser
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Search <code className="rounded bg-zinc-800 px-1 text-xs">ended_auctions</code>{" "}
-            by text, optional structured filters (rarity, enchants, stars, BIN, sold,
-            min price), and expand a row for full{" "}
-            <code className="rounded bg-zinc-800 px-1 text-xs">item_json</code> (decoded
-            NBT).
+            {tab === "ended" ? (
+              <>
+                Search{" "}
+                <code className="rounded bg-zinc-800 px-1 text-xs">ended_auctions</code>{" "}
+                by text, optional structured filters (rarity, enchants, stars, BIN, sold,
+                min price), and expand a row for full{" "}
+                <code className="rounded bg-zinc-800 px-1 text-xs">item_json</code> (decoded
+                NBT).
+              </>
+            ) : (
+              <>
+                <code className="rounded bg-zinc-800 px-1 text-xs">bin_listings</code>{" "}
+                — active BIN snapshot (scanner or{" "}
+                <code className="rounded bg-zinc-800 px-1 text-xs">/ah-snapshot</code>
+                ). Same structured filters as ended auctions (rarity, stars, enchants, min
+                price maps to starting bid). Run{" "}
+                <code className="rounded bg-zinc-800 px-1 text-xs">
+                  supabase/add_bin_listings_browse_columns.sql
+                </code>{" "}
+                once for filter columns. Expand a row for{" "}
+                <code className="rounded bg-zinc-800 px-1 text-xs">item_json</code>.
+              </>
+            )}
           </p>
         </div>
 
+        <div className="flex flex-wrap gap-2 border-b border-zinc-800 pb-3">
+          <button
+            type="button"
+            onClick={() => setTab("ended")}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              tab === "ended"
+                ? "bg-sky-600 text-white"
+                : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            }`}
+          >
+            Ended auctions
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("active")}
+            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+              tab === "active"
+                ? "bg-sky-600 text-white"
+                : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+            }`}
+          >
+            Active auctions
+          </button>
+        </div>
+
+        {tab === "ended" && (
         <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
           <aside className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm">
             <h2 className="font-medium text-zinc-300">Tables</h2>
@@ -428,6 +568,237 @@ export default function BrowsePage() {
             )}
           </div>
         </div>
+        )}
+
+        {tab === "active" && (
+        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 text-sm">
+            <h2 className="font-medium text-zinc-300">Tables</h2>
+            <ul className="mt-3 space-y-2 text-zinc-500">
+              {tableStats?.map((t) => (
+                <li key={t.name}>
+                  <span className="font-mono text-xs text-sky-400/90">{t.name}</span>
+                  {t.error ? (
+                    <span className="ml-2 text-xs text-amber-500">({t.error})</span>
+                  ) : (
+                    <span className="ml-2 font-mono text-zinc-400">
+                      {t.count?.toLocaleString() ?? "—"} rows
+                    </span>
+                  )}
+                </li>
+              ))}
+              {!tableStats && (
+                <li className="text-xs text-zinc-600">Loading counts…</li>
+              )}
+            </ul>
+            <div className="mt-4 border-t border-zinc-800 pt-4 text-xs text-zinc-600">
+              <p className="font-medium text-zinc-500">bin_listings</p>
+              <p className="mt-2">
+                <code className="text-zinc-500">starting_bid</code>,{" "}
+                <code className="text-zinc-500">start_at</code>,{" "}
+                <code className="text-zinc-500">end_at</code>,{" "}
+                <code className="text-zinc-500">first_seen_at</code>, seller, item ids,{" "}
+                <code className="text-zinc-500">item_json</code>. Filters use generated
+                columns (same idea as ended_auctions).
+              </p>
+            </div>
+          </aside>
+
+          <div className="flex min-w-0 flex-col gap-4">
+            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="min-w-0 flex-1">
+                <label className="text-sm font-medium text-zinc-300">
+                  Search
+                </label>
+                <input
+                  type="search"
+                  placeholder="Name, id, rarity tier, auction id, seller UUID…"
+                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-sky-500"
+                  value={qInput}
+                  onChange={(e) => setQInput(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-zinc-500">Per page</label>
+                <select
+                  className="mt-1 w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm outline-none focus:border-sky-500 sm:w-28"
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </div>
+              <button
+                type="button"
+                onClick={() => loadActiveBrowse()}
+                className="rounded-lg border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm text-zinc-300 hover:border-zinc-600"
+              >
+                Refresh
+              </button>
+            </div>
+            <BrowseFilterBar filters={filters} onFiltersChange={setFilters} />
+            </div>
+
+            {activeErr && (
+              <div className="whitespace-pre-wrap rounded-lg border border-red-900/50 bg-red-950/30 px-4 py-2 text-sm text-red-200">
+                {activeErr}
+              </div>
+            )}
+
+            <p className="text-xs text-zinc-500">
+              {activeLoading
+                ? "Loading…"
+                : `${activeTotal.toLocaleString()} result${activeTotal === 1 ? "" : "s"} · page ${page} of ${activeTotalPages}`}
+            </p>
+
+            <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/40">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[960px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-800 text-zinc-500">
+                      <th className="px-3 py-2 font-medium">First seen</th>
+                      <th className="px-3 py-2 font-medium">Ends</th>
+                      <th className="px-3 py-2 font-medium">Item</th>
+                      <th className="px-3 py-2 font-medium">SkyBlock id</th>
+                      <th className="px-3 py-2 font-medium">Starting bid</th>
+                      <th className="px-3 py-2 font-medium">BIN</th>
+                      <th className="px-3 py-2 font-medium">Seller</th>
+                      <th className="px-3 py-2 font-medium" />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeLoading && activeRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="px-3 py-8 text-center text-zinc-500"
+                        >
+                          Loading…
+                        </td>
+                      </tr>
+                    ) : activeRows.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={8}
+                          className="px-3 py-8 text-center text-zinc-500"
+                        >
+                          No rows. Run the BIN scanner or full snapshot, or widen your search.
+                        </td>
+                      </tr>
+                    ) : (
+                      activeRows.map((r) => (
+                        <Fragment key={r.auction_id}>
+                          <tr className="border-b border-zinc-800/80 bg-zinc-950/20 hover:bg-zinc-800/30">
+                            <td className="whitespace-nowrap px-3 py-2 font-mono text-xs text-zinc-400">
+                              {new Date(r.first_seen_at).toLocaleString()}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-2 font-mono text-xs text-zinc-400">
+                              {new Date(r.end_at).toLocaleString()}
+                            </td>
+                            <td className="max-w-[180px] truncate px-3 py-2 text-zinc-200">
+                              <a
+                                href={coflAuctionUrl(r.auction_id)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sky-400 hover:underline"
+                                title={r.item_name ?? r.auction_id}
+                              >
+                                {r.item_name ?? "—"}
+                              </a>
+                            </td>
+                            <td className="max-w-[120px] truncate px-3 py-2 font-mono text-xs">
+                              <span className="text-zinc-500" title={r.item_id ?? ""}>
+                                {r.item_id ?? "—"}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 font-mono text-zinc-200">
+                              {formatCoins(r.starting_bid)}
+                            </td>
+                            <td className="px-3 py-2 text-zinc-400">
+                              {r.is_bin ? "Yes" : "No"}
+                            </td>
+                            <td
+                              className="max-w-[100px] truncate px-3 py-2 font-mono text-xs text-zinc-500"
+                              title={r.seller_uuid}
+                            >
+                              {shortId(r.seller_uuid)}
+                            </td>
+                            <td className="px-3 py-2">
+                              <button
+                                type="button"
+                                onClick={() => openActiveDetail(r.auction_id)}
+                                className="text-sky-400 hover:underline"
+                              >
+                                {activeExpanded === r.auction_id ? "Hide" : "JSON"}
+                              </button>
+                            </td>
+                          </tr>
+                          {activeExpanded === r.auction_id && (
+                            <tr className="border-b border-zinc-800 bg-zinc-900/80">
+                              <td colSpan={8} className="px-3 py-3">
+                                {activeDetailLoading && (
+                                  <p className="text-xs text-zinc-500">
+                                    Loading item_json…
+                                  </p>
+                                )}
+                                {!activeDetailLoading &&
+                                  activeDetail?.item_json != null && (
+                                    <pre className="max-h-[min(70vh,560px)] overflow-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-[11px] leading-relaxed text-zinc-300">
+                                      {JSON.stringify(activeDetail.item_json, null, 2)}
+                                    </pre>
+                                  )}
+                                {!activeDetailLoading &&
+                                  activeDetail &&
+                                  activeDetail.item_json == null && (
+                                    <p className="text-xs text-zinc-500">
+                                      No item_json stored for this row.
+                                    </p>
+                                  )}
+                              </td>
+                            </tr>
+                          )}
+                        </Fragment>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {activeTotalPages > 1 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={page <= 1 || activeLoading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm disabled:opacity-40"
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-zinc-500">
+                  Page {page} / {activeTotalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= activeTotalPages || activeLoading}
+                  onClick={() =>
+                    setPage((p) => Math.min(activeTotalPages, p + 1))
+                  }
+                  className="rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-1.5 text-sm disabled:opacity-40"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+        )}
       </main>
     </div>
   );

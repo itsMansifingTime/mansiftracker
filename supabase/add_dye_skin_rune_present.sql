@@ -14,11 +14,21 @@ as $$
   );
 $$;
 
+create or replace function public.dye_present_from_extra_attributes(e jsonb)
+returns boolean
+language sql
+immutable
+parallel safe
+as $$
+  select coalesce(e ? 'dye', false)
+    or coalesce(e ? 'Dye', false)
+    or coalesce(e ? 'dye_item', false);
+$$;
+
 alter table public.ended_auctions
   add column if not exists dye_present boolean
   generated always as (
-    coalesce(public.extra_attributes_jsonb(item_json) ? 'dye', false)
-    or coalesce(public.extra_attributes_jsonb(item_json) ? 'Dye', false)
+    public.dye_present_from_extra_attributes(public.extra_attributes_jsonb(item_json))
   ) stored;
 
 alter table public.ended_auctions

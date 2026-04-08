@@ -1,4 +1,5 @@
 import {
+  bazaarBuyOrderPrice,
   bazaarInstantSell,
   bazaarSellSummaryFirst,
   fetchBazaar,
@@ -142,7 +143,7 @@ export async function computeCraftCost(
   const masterCount = Math.min(Math.max(slider - 5, 0), MASTER_STAR_IDS.length);
 
   const witherProduct = getProduct(products, "ESSENCE_WITHER");
-  /** Buy essence from sell orders — sell_summary[0]. */
+  /** Wither essence: sell_summary[0] = instant sell (lower; Hyperion calculator only). */
   const witherPerUnit = bazaarSellSummaryFirst(witherProduct);
   const { essence: essenceTotal, coins: starCoins } =
     cumulativeRegularStarCosts(regularCount);
@@ -180,6 +181,13 @@ export async function computeCraftCost(
     enchantLines.push({
       label: "Recomb",
       cost: bazaarInstantSell(getProduct(products, "RECOMBOBULATOR_3000")),
+    });
+  }
+
+  if (options.includeArtOfWar) {
+    enchantLines.push({
+      label: "The Art of War",
+      cost: bazaarInstantSell(getProduct(products, "THE_ART_OF_WAR")),
     });
   }
 
@@ -266,10 +274,9 @@ export async function computeCraftCost(
     subtotal: sumSection(gemLines),
   });
 
-  // --- WIMP ---
-  /* Hypixel naming is reversed: buy_summary = sell orders (instant buy), sell_summary = buy orders */
+  // --- WIMP (buy-order when “instant buy” — matches breakdown / enchant books) ---
   const scrollPrice = options.scrollsInstantBuy
-    ? bazaarInstantSell
+    ? bazaarBuyOrderPrice
     : bazaarSellSummaryFirst;
   const wimpLines: CostLine[] = [];
   if (options.includeWitherShield) {

@@ -246,34 +246,17 @@ export function applyBrowseFiltersToQuery(
         else q = q.is("buyer_uuid", null);
         break;
       case "has_dye":
-        // Filter on extra_attributes (no dye_present column required).
-        if (f.value) {
-          q = q.or(
-            "extra_attributes->dye.not.is.null,extra_attributes->Dye.not.is.null"
-          );
-        } else {
-          q = q
-            .is("extra_attributes->dye", null)
-            .is("extra_attributes->Dye", null);
-        }
+        // Prefer generated `dye_present` (schema.sql) — PostgREST `or()` on nested jsonb is unreliable.
+        if (f.value) q = q.eq("dye_present", true);
+        else q = q.eq("dye_present", false);
         break;
       case "has_rune":
-        if (f.value) {
-          q = q
-            .not("extra_attributes->runes", "is", null)
-            .neq("extra_attributes->runes", "{}");
-        } else {
-          q = q.or(
-            "extra_attributes->runes.is.null,extra_attributes->runes.eq.{}"
-          );
-        }
+        if (f.value) q = q.eq("rune_present", true);
+        else q = q.eq("rune_present", false);
         break;
       case "has_skin":
-        if (f.value) {
-          q = q.not("extra_attributes->skin", "is", null);
-        } else {
-          q = q.is("extra_attributes->skin", null);
-        }
+        if (f.value) q = q.eq("skin_present", true);
+        else q = q.eq("skin_present", false);
         break;
       case "rarity":
         q = q.ilike("item_rarity", escapeIlikeFragment(f.value));
@@ -330,7 +313,128 @@ export function applyBrowseFiltersToQuery(
       case "dye": {
         const k = sanitizeCosmeticKey(f.key);
         if (k) {
-          q = q.eq("extra_attributes->>dye", k);
+          // Hypixel uses `dye_item` for armor dyes (e.g. DYE_AQUAMARINE); legacy may use `dye` / `Dye`.
+          q = q.or(
+            `extra_attributes->>dye.eq.${k},extra_attributes->>dye_item.eq.${k},extra_attributes->>Dye.eq.${k}`
+          );
+        }
+        break;
+      }
+      case "rune": {
+        const k = sanitizeCosmeticKey(f.key);
+        if (k) {
+          q = q.not(`extra_attributes->runes->${k}`, "is", null);
+        }
+        break;
+      }
+      case "skin": {
+        const k = sanitizeCosmeticKey(f.key);
+        if (k) {
+          q = q.eq("extra_attributes->>skin", k);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  return q;
+}
+
+const NO_MATCH_AUCTION_ID = "00000000-0000-0000-0000-000000000000";
+
+/**
+ * Same filter semantics as {@link applyBrowseFiltersToQuery} for `bin_listings`
+ * (active BIN snapshot). Uses `starting_bid` instead of `price`, `is_bin` instead of `bin`,
+ * and has no sold state — "Sold: yes" returns no rows.
+ */
+export function applyBrowseFiltersToBinListingsQuery(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  query: any,
+  filters: ActiveBrowseFilter[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
+  let q = query;
+  for (const f of filters) {
+    switch (f.id) {
+      case "bin":
+        q = q.eq("is_bin", f.value);
+        break;
+      case "sold":
+        if (f.value) {
+          q = q.eq("auction_id", NO_MATCH_AUCTION_ID);
+        }
+        break;
+      case "has_dye":
+        if (f.value) q = q.eq("dye_present", true);
+        else q = q.eq("dye_present", false);
+        break;
+      case "has_rune":
+        if (f.value) q = q.eq("rune_present", true);
+        else q = q.eq("rune_present", false);
+        break;
+      case "has_skin":
+        if (f.value) q = q.eq("skin_present", true);
+        else q = q.eq("skin_present", false);
+        break;
+      case "rarity":
+        q = q.ilike("item_rarity", escapeIlikeFragment(f.value));
+        break;
+      case "reforge": {
+        const p = `%${escapeIlikeFragment(f.value)}%`;
+        q = q.ilike("extra_attributes->>modifier", p);
+        break;
+      }
+      case "stars":
+        q = q.eq("item_upgrade_level", f.value);
+        break;
+      case "highest_bid":
+        q = q.gte("starting_bid", f.value);
+        break;
+      case "recombobulated":
+        if (f.value) {
+          q = q.gte("extra_attributes->rarity_upgrades", 1);
+        } else {
+          q = q.or(
+            "extra_attributes->rarity_upgrades.is.null,extra_attributes->rarity_upgrades.lt.1"
+          );
+        }
+        break;
+      case "soulbound":
+        if (f.value) {
+          q = q.eq("extra_attributes->soulbound", true);
+        } else {
+          q = q.or(
+            "extra_attributes->soulbound.is.null,extra_attributes->soulbound.eq.false"
+          );
+        }
+        break;
+      case "min_hpc":
+        q = q.gte("extra_attributes->hpc", f.value);
+        break;
+      case "min_fuming":
+        q = q.gte("extra_attributes->fuming_potato_count", f.value);
+        break;
+      case "enchant": {
+        const k = sanitizeEnchantKey(f.key);
+        if (k) {
+          q = q.not(`extra_attributes->enchantments->${k}`, "is", null);
+        }
+        break;
+      }
+      case "nbt_field": {
+        const k = sanitizeEnchantKey(f.key);
+        if (k) {
+          q = q.not(`extra_attributes->${k}`, "is", null);
+        }
+        break;
+      }
+      case "dye": {
+        const k = sanitizeCosmeticKey(f.key);
+        if (k) {
+          q = q.or(
+            `extra_attributes->>dye.eq.${k},extra_attributes->>dye_item.eq.${k},extra_attributes->>Dye.eq.${k}`
+          );
         }
         break;
       }

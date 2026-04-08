@@ -9,6 +9,11 @@ import {
   type CalculatorOptions,
   type GemSapphire,
 } from "@/lib/calculator-options";
+import {
+  GEMSTONE_SLOT_WIKI_API_ROUTE,
+  GEMSTONE_SLOT_WIKI_SNAPSHOT_RELATIVE_PATH,
+  WIKI_GEMSTONE_SLOT_PAGE,
+} from "@/lib/gemstone-slot-wiki";
 
 export const dynamic = "force-dynamic";
 
@@ -90,6 +95,7 @@ function bodyToOptions(
     ),
     includeTitanics: parseBool(b.includeTitanics, d.includeTitanics),
     includeRecomb: parseBool(b.includeRecomb, d.includeRecomb),
+    includeArtOfWar: parseBool(b.includeArtOfWar, d.includeArtOfWar),
     ...tiers,
     gemSlotsUnlocked: parseBool(b.gemSlotsUnlocked, d.gemSlotsUnlocked),
     gemSapphire: parseGemSapphire(b.gemSapphire, d.gemSapphire),
@@ -128,6 +134,11 @@ export async function POST(req: Request) {
       requiredSellPrice: Math.ceil(sellPrice),
       necronLowestBin,
       handleAutoCoins,
+      gemstoneSlotWiki: {
+        sourceUrl: WIKI_GEMSTONE_SLOT_PAGE,
+        snapshotRelativePath: GEMSTONE_SLOT_WIKI_SNAPSHOT_RELATIVE_PATH,
+        markdownApiPath: GEMSTONE_SLOT_WIKI_API_ROUTE,
+      },
     });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error";

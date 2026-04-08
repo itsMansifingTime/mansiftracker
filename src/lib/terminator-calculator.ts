@@ -1,8 +1,13 @@
 import { bazaarInstantSell, fetchBazaar, getProduct } from "./bazaar";
-import { HANDLE_DEFAULT_PCT_UNDER_BIN } from "./calculator-options";
+import {
+  HANDLE_DEFAULT_PCT_UNDER_BIN,
+  HOT_POTATO_BOOKS_COUNT,
+} from "./calculator-options";
 import { fetchLowestJudgementBin } from "./coflnet";
+import { getEnchantCost } from "./enchant-pricing";
 import {
   DEFAULT_TERMINATOR_CRAFT_OPTIONS,
+  TERMINATOR_BOW_ENCHANT_ROWS,
   type TerminatorCraftOptions,
 } from "./terminator-options";
 import type { CostLine, CostSection } from "./calculator";
@@ -62,7 +67,7 @@ export async function computeTerminatorCraftCost(
     ? "Judgement Core (custom)"
     : `Judgement Core (${HANDLE_DEFAULT_PCT_UNDER_BIN}% under lowest BIN)`;
 
-  const lines: CostLine[] = [
+  const materialLines: CostLine[] = [
     {
       label: `Tarantula Silk (×${TARANTULA_SILK_COUNT})`,
       cost:
@@ -78,14 +83,14 @@ export async function computeTerminatorCraftCost(
   ];
 
   if (options.braidedPricing === "bazaar") {
-    lines.push({
+    materialLines.push({
       label: `Braided Griffin Feather (×${BRAIDED_GRIFFIN_FEATHER_COUNT}, bazaar)`,
       cost:
         bazaarInstantSell(getProduct(products, "BRAIDED_GRIFFIN_FEATHER")) *
         BRAIDED_GRIFFIN_FEATHER_COUNT,
     });
   } else {
-    lines.push(
+    materialLines.push(
       {
         label: `Griffin Feather (×${GRIFFIN_FEATHER_PER_BRAIDED * BRAIDED_GRIFFIN_FEATHER_COUNT}, for ${BRAIDED_GRIFFIN_FEATHER_COUNT}× braided craft)`,
         cost:
@@ -104,13 +109,13 @@ export async function computeTerminatorCraftCost(
   }
 
   if (options.nullBladePricing === "bazaar") {
-    lines.push({
+    materialLines.push({
       label: `Null Blade (×${NULL_BLADE_COUNT}, bazaar)`,
       cost:
         bazaarInstantSell(getProduct(products, "NULL_BLADE")) * NULL_BLADE_COUNT,
     });
   } else {
-    lines.push(
+    materialLines.push(
       {
         label: `Null Ovoid (×${NULL_OVOID_PER_BLADE * NULL_BLADE_COUNT}, for ${NULL_BLADE_COUNT}× Null Blade craft)`,
         cost:
@@ -135,15 +140,100 @@ export async function computeTerminatorCraftCost(
     );
   }
 
-  lines.push({ label: judgementLabel, cost: judgementCost });
+  materialLines.push({ label: judgementLabel, cost: judgementCost });
+
+  const addonLines: CostLine[] = [];
+
+  const hpbCount = Math.min(
+    HOT_POTATO_BOOKS_COUNT,
+    Math.max(0, Math.floor(options.hotPotatoBooksCount))
+  );
+  if (hpbCount > 0) {
+    const hotPotatoUnit = bazaarInstantSell(
+      getProduct(products, "HOT_POTATO_BOOK")
+    );
+    addonLines.push({
+      label: `Hot Potato Book (×${hpbCount})`,
+      cost: hotPotatoUnit * hpbCount,
+    });
+  }
+  if (options.includeFumingPotatoBook) {
+    addonLines.push({
+      label: "Fuming Potato Book",
+      cost: bazaarInstantSell(getProduct(products, "FUMING_POTATO_BOOK")),
+    });
+  }
+  if (options.includeRecomb) {
+    addonLines.push({
+      label: "Recombobulator 3000",
+      cost: bazaarInstantSell(getProduct(products, "RECOMBOBULATOR_3000")),
+    });
+  }
+  if (options.includeArtOfWar) {
+    addonLines.push({
+      label: "The Art of War",
+      cost: bazaarInstantSell(getProduct(products, "THE_ART_OF_WAR")),
+    });
+  }
+
+  const td = Math.min(5, Math.max(0, Math.floor(options.tierDuplex)));
+  if (td > 0) {
+    addonLines.push({
+      label: `Ultimate Duplex ${td}`,
+      cost: getEnchantCost(
+        "ULTIMATE_DUPLEX",
+        td,
+        products,
+        bazaarInstantSell
+      ),
+    });
+  }
+  const ts = Math.min(5, Math.max(0, Math.floor(options.tierSoulEater)));
+  if (ts > 0) {
+    addonLines.push({
+      label: `Ultimate Soul Eater ${ts}`,
+      cost: getEnchantCost(
+        "ULTIMATE_SOUL_EATER",
+        ts,
+        products,
+        bazaarInstantSell
+      ),
+    });
+  }
+
+  for (const row of TERMINATOR_BOW_ENCHANT_ROWS) {
+    const raw = options[row.key as keyof TerminatorCraftOptions];
+    const tier =
+      typeof raw === "number" && Number.isFinite(raw)
+        ? Math.min(row.maxTier, Math.max(0, Math.floor(raw)))
+        : 0;
+    if (tier > 0) {
+      addonLines.push({
+        label: `${row.label} ${tier}`,
+        cost: getEnchantCost(
+          row.prefix,
+          tier,
+          products,
+          bazaarInstantSell
+        ),
+      });
+    }
+  }
 
   const sections: CostSection[] = [
     {
-      id: "terminator",
-      title: "Terminator craft cost",
-      lines,
-      subtotalLabel: "Total Terminator craft cost",
-      subtotal: sumSection(lines),
+      id: "terminator-materials",
+      title: "Materials",
+      lines: materialLines,
+      subtotalLabel: "Subtotal — materials",
+      subtotal: sumSection(materialLines),
+    },
+    {
+      id: "terminator-addons",
+      title: "Add-ons",
+      lines: addonLines,
+      subtotalLabel: "Subtotal — add-ons",
+      subtotal: sumSection(addonLines),
     },
   ];
 

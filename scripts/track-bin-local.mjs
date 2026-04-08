@@ -2,7 +2,10 @@
  * Call /api/track-bin-listings while Next is running (or set TRACK_URL).
  *
  *   npm run track:bin
- *   npm run track:bin -- --maxPages=10
+ *   npm run track:bin -- --maxPages=5
+ *
+ * Deal Discord alerts: set BIN_DEAL_ALERT_WEBHOOK_URL + BIN_DEAL_ITEM_IDS in .env
+ * (see .env.example); default scan is 5 pages when those are set.
  */
 
 const base = (process.env.TRACK_URL ?? "http://localhost:3000").replace(

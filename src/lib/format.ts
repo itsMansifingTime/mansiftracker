@@ -4,6 +4,20 @@ export function formatCoins(n: number): string {
 }
 
 /**
+ * Bazaar / prices with fixed fractional digits (Hypixel often shows one decimal).
+ */
+export function formatCoinsDetail(
+  n: number,
+  fractionDigits = 1
+): string {
+  if (!Number.isFinite(n)) return "—";
+  return n.toLocaleString("en-US", {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+}
+
+/**
  * Parses coin amounts with optional k / m / b suffixes (thousand / million / billion).
  * Commas and spaces are ignored. Case-insensitive suffix.
  * Returns null if the string is non-empty but not a valid amount.

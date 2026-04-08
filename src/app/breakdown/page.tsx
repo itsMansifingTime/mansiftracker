@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Nav } from "@/components/Nav";
+import type { BazaarPriceMode } from "@/lib/auction-breakdown";
 import { formatCoins } from "@/lib/format";
 
 type BreakdownSection = {
@@ -15,7 +16,9 @@ type Result = {
   auction: { uuid: string; itemName: string; tag: string };
   sections: BreakdownSection[];
   total: number;
+  notes?: string[];
   error?: string;
+  bazaarPriceMode?: BazaarPriceMode;
 };
 
 const selectClass =
@@ -23,9 +26,11 @@ const selectClass =
 
 export default function BreakdownPage() {
   const [uuidInput, setUuidInput] = useState("");
+  const [itemBytesInput, setItemBytesInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [bazaarMode, setBazaarMode] = useState<BazaarPriceMode>("instant_sell");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +43,11 @@ export default function BreakdownPage() {
       const res = await fetch("/api/auction-breakdown", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uuid: id }),
+        body: JSON.stringify({
+          uuid: id,
+          itemBytesBase64: itemBytesInput.trim() || undefined,
+          bazaarPriceMode: bazaarMode,
+        }),
       });
       const j = (await res.json()) as Result & { error?: string };
       if (!res.ok) throw new Error(j.error || res.statusText);
@@ -64,9 +73,20 @@ export default function BreakdownPage() {
             Auction craft breakdown
           </h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Paste an auction UUID to get a detailed craft cost breakdown. Base
-            items use CoflNet lowest BIN; enchants and addons use Bazaar prices.
-            Data from{" "}
+            Paste an auction UUID for a craft cost breakdown. With{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">HYPIXEL_API_KEY</code>{" "}
+            set in <code className="rounded bg-zinc-800 px-1 text-xs">.env.local</code>, the
+            server fetches the Hypixel auction API and decodes{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">item_bytes</code> locally
+            (gzip → NBT), or reads the Supabase AH snapshot (no key; full rescan at most about once
+            per hour on breakdown submit, or anytime via{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">GET /api/sync-active-auctions</code>
+            ). Otherwise CoflNet listing + NBT is fallback. Kuudra-family
+            armor uses Basic-tier BIN + wiki essence path + enchants. Optional: paste raw{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">item_bytes</code> (gzip base64) to
+            merge on top when something is still missing.             Toggle <strong className="text-zinc-400">Instant buy</strong> vs{" "}
+            <strong className="text-zinc-400">Instant sell</strong> for Hypixel bazaar
+            material & enchant lines (default: buy). BIN references from{" "}
             <a
               href="https://sky.coflnet.com"
               className="text-sky-400 underline"
@@ -105,6 +125,52 @@ export default function BreakdownPage() {
               — click an auction, the UUID is in the URL.
             </p>
           </div>
+          <div>
+            <label className="text-sm font-medium text-zinc-300">
+              item_bytes (optional)
+            </label>
+            <textarea
+              className="mt-1 w-full min-h-[72px] resize-y rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 font-mono text-xs text-zinc-100 outline-none focus:border-sky-500"
+              placeholder="Paste gzip base64 from auction inspect / API…"
+              value={itemBytesInput}
+              onChange={(e) => setItemBytesInput(e.target.value)}
+              disabled={loading}
+              spellCheck={false}
+            />
+            <p className="mt-1 text-xs text-zinc-500">
+              Merged on top of Hypixel decode (with API key) or Cofl NBT for modifiers + Kuudra ★
+              detection.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-sm text-zinc-400">Bazaar pricing</span>
+            <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-900 p-0.5">
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setBazaarMode("instant_buy")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                  bazaarMode === "instant_buy"
+                    ? "bg-sky-600 text-white"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Instant buy
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => setBazaarMode("instant_sell")}
+                className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                  bazaarMode === "instant_sell"
+                    ? "bg-sky-600 text-white"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Instant sell
+              </button>
+            </div>
+          </div>
           <button
             type="submit"
             disabled={loading || !uuidInput.trim()}
@@ -120,6 +186,16 @@ export default function BreakdownPage() {
           </div>
         )}
 
+        {result && !result.error && result.notes && result.notes.length > 0 && (
+          <div className="rounded-xl border border-amber-900/50 bg-amber-950/30 px-4 py-3 text-sm text-amber-100/95">
+            <ul className="list-inside list-disc space-y-1">
+              {result.notes.map((n, i) => (
+                <li key={i}>{n}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {result && !result.error && (
           <div className="flex flex-col gap-4">
             <div className="rounded-xl border border-zinc-700 bg-zinc-900/80 p-5">
@@ -130,6 +206,14 @@ export default function BreakdownPage() {
                 <span className="font-mono text-lg font-semibold text-sky-300">
                   Total craft cost: {formatCoins(result.total)}
                 </span>
+                {result.bazaarPriceMode && (
+                  <span className="text-xs text-zinc-500">
+                    Bazaar:{" "}
+                    {result.bazaarPriceMode === "instant_buy"
+                      ? "instant buy (buy_summary[0])"
+                      : "instant sell (sell_summary[0])"}
+                  </span>
+                )}
               </div>
             </div>
 

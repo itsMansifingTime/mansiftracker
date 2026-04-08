@@ -3,32 +3,15 @@
  * Keys should match Hypixel `ExtraAttributes` as stored in JSON (often SCREAMING_SNAKE_CASE).
  * Extend these lists anytime — substring matches only show ~30 rows.
  *
+ * Dyes: `skyblock-dye-ids-static.ts` (from https://hypixel-skyblock.fandom.com/wiki/Dyes ) plus DB hints.
  * Skins: bulk list from the Fire Sale wiki (`skyblock-skin-ids-wiki.ts`), plus a few aliases.
  * https://hypixel-skyblock.fandom.com/wiki/Fire_Sale
  */
+import { SKYBLOCK_DYE_IDS_STATIC } from "./skyblock-dye-ids-static";
 import { SKYBLOCK_SKIN_IDS_FROM_WIKI } from "./skyblock-skin-ids-wiki";
 
 function buildDyeSet(): Set<string> {
-  const s = new Set<string>();
-  const add = (...keys: string[]) => {
-    for (const k of keys) s.add(k);
-  };
-
-  // Fire Sale 2024 armor dyes (and nearby popular)
-  add(
-    "AURORA_DYE",
-    "LAVA_DYE",
-    "PASTEL_SKY_DYE",
-    "ROSE_DYE",
-    "PORTAL_DYE",
-    "LUCKY_DYE",
-    "WARDEN_DYE",
-    "BLACK_OPAL_DYE",
-    "FROG_DYE",
-    "OCEAN_DYE"
-  );
-
-  return s;
+  return new Set<string>(SKYBLOCK_DYE_IDS_STATIC);
 }
 
 function buildRuneSet(): Set<string> {

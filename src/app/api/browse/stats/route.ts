@@ -17,6 +17,8 @@ export async function GET() {
 
   for (const name of [
     "ended_auctions",
+    "bin_listings",
+    "hypixel_active_auctions",
     "sold_hyperions",
     "purchased_hyperions",
   ] as const) {

@@ -50,6 +50,8 @@ export type CalculatorOptions = {
   includeFumingPotatoBook: boolean;
   includeTitanics: boolean;
   includeRecomb: boolean;
+  /** Bazaar `THE_ART_OF_WAR` (optional). */
+  includeArtOfWar: boolean;
   tierBane: number;
   tierLifeSteal: number;
   tierSmite: number;
@@ -60,7 +62,10 @@ export type CalculatorOptions = {
   includeWitherShield: boolean;
   includeShadowWarp: boolean;
   includeImplosion: boolean;
-  /** If true, use instant buy (sell_summary[0]); if false, use buy order (buy_summary[0]). */
+  /**
+   * WIMP scrolls: if true, buy-order price (`bazaarBuyOrderPrice` in `bazaar.ts` — buy-side order book + quick_status fallback); if false, `sell_summary[0]` (**instant sell**, lower).
+   * Does not affect the auction breakdown page.
+   */
   scrollsInstantBuy: boolean;
 };
 
@@ -70,6 +75,7 @@ export const DEFAULT_CALCULATOR_OPTIONS: CalculatorOptions = {
   includeFumingPotatoBook: false,
   includeTitanics: true,
   includeRecomb: true,
+  includeArtOfWar: false,
   tierBane: 6,
   tierLifeSteal: 4,
   tierSmite: 6,
@@ -89,6 +95,7 @@ export const TRACKER_SNAPSHOT_OPTIONS: CalculatorOptions = {
   includeFumingPotatoBook: false,
   includeTitanics: true,
   includeRecomb: true,
+  includeArtOfWar: true,
   tierBane: 7,
   tierLifeSteal: 5,
   tierSmite: 7,

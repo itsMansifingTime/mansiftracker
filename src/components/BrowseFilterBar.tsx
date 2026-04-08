@@ -37,6 +37,7 @@ const COMMON_EXTRA_ATTR_KEYS: readonly string[] = [
   "hpc",
   "hot_potato_count",
   "id",
+  "dye_item",
   "modifier",
   "originTag",
   "rarity_upgrades",
@@ -86,7 +87,9 @@ function keySuggestMatches(id: string, rawQuery: string): boolean {
   return qAlnum.length >= 1 && hAlnum.includes(qAlnum);
 }
 
-/** Type-ahead: merged static + optional DB hints; only ~30 rows in DOM. */
+const KEY_SUGGEST_MAX = 30;
+
+/** Type-ahead + autofill: first rows on empty focus; filter when typing; ↑↓ Enter. */
 function KeySuggestFilterRow({
   label,
   placeholder,
@@ -108,11 +111,24 @@ function KeySuggestFilterRow({
   lowercaseInput: boolean;
 }) {
   const [suggestOpen, setSuggestOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
   const suggestions = useMemo(() => {
     const q = keyValue.trim();
-    if (q.length < 1) return [];
-    return allKeys.filter((k) => keySuggestMatches(k, q)).slice(0, 30);
+    if (q.length < 1) return allKeys.slice(0, KEY_SUGGEST_MAX);
+    return allKeys.filter((k) => keySuggestMatches(k, q)).slice(0, KEY_SUGGEST_MAX);
   }, [keyValue, allKeys]);
+
+  useEffect(() => {
+    setHighlight(0);
+  }, [keyValue]);
+
+  const applySuggestion = useCallback(
+    (s: string) => {
+      onChange(lowercaseInput ? s.toLowerCase() : s);
+      setSuggestOpen(false);
+    },
+    [onChange, lowercaseInput]
+  );
 
   return (
     <div className="relative flex min-w-[280px] max-w-md flex-1 flex-col gap-1 rounded-lg border border-zinc-700 bg-zinc-950/80 px-2 py-1.5 text-sm">
@@ -123,32 +139,61 @@ function KeySuggestFilterRow({
           spellCheck={false}
           autoComplete="off"
           placeholder={placeholder}
+          role="combobox"
+          aria-expanded={suggestOpen && suggestions.length > 0}
+          aria-autocomplete="list"
           className="min-w-[160px] flex-1 rounded border border-zinc-600 bg-zinc-900 px-2 py-0.5 font-mono text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-sky-500"
           value={keyValue}
-          onChange={(e) =>
+          onChange={(e) => {
+            setSuggestOpen(true);
             onChange(
               lowercaseInput ? e.target.value.toLowerCase() : e.target.value
-            )
-          }
+            );
+          }}
           onFocus={() => setSuggestOpen(true)}
           onBlur={() => {
             setTimeout(() => setSuggestOpen(false), 150);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setSuggestOpen(false);
+              return;
+            }
+            if (!suggestions.length) return;
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setSuggestOpen(true);
+              setHighlight((h) => Math.min(suggestions.length - 1, h + 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setSuggestOpen(true);
+              setHighlight((h) => Math.max(0, h - 1));
+            } else if (e.key === "Enter" && suggestOpen) {
+              e.preventDefault();
+              const s = suggestions[highlight];
+              if (s) applySuggestion(s);
+            }
           }}
         />
         {remove}
       </div>
       {suggestOpen && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 top-full z-30 mt-0 max-h-40 overflow-y-auto rounded border border-zinc-700 bg-zinc-950 py-1 shadow-lg">
-          {suggestions.map((s) => (
-            <li key={s}>
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-30 mt-0 max-h-40 overflow-y-auto rounded border border-zinc-700 bg-zinc-950 py-1 shadow-lg"
+        >
+          {suggestions.map((s, idx) => (
+            <li key={s} role="option" aria-selected={idx === highlight}>
               <button
                 type="button"
-                className="w-full px-2 py-1 text-left font-mono text-xs text-zinc-200 hover:bg-zinc-800"
+                className={`w-full px-2 py-1 text-left font-mono text-xs ${
+                  idx === highlight
+                    ? "bg-zinc-700 text-zinc-50"
+                    : "text-zinc-200 hover:bg-zinc-800"
+                }`}
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  onChange(s);
-                  setSuggestOpen(false);
-                }}
+                onMouseEnter={() => setHighlight(idx)}
+                onClick={() => applySuggestion(s)}
               >
                 {s}
               </button>
@@ -160,6 +205,8 @@ function KeySuggestFilterRow({
     </div>
   );
 }
+
+const REFORGE_SUGGEST_MAX = 25;
 
 function ReforgeFilterRow({
   value,
@@ -173,11 +220,18 @@ function ReforgeFilterRow({
   modifiersFromDb: string[];
 }) {
   const [open, setOpen] = useState(false);
+  const [highlight, setHighlight] = useState(0);
   const suggestions = useMemo(() => {
     const q = value.trim().toLowerCase();
-    if (q.length < 1) return [];
-    return modifiersFromDb.filter((m) => m.toLowerCase().includes(q)).slice(0, 25);
+    if (q.length < 1) return modifiersFromDb.slice(0, REFORGE_SUGGEST_MAX);
+    return modifiersFromDb
+      .filter((m) => m.toLowerCase().includes(q))
+      .slice(0, REFORGE_SUGGEST_MAX);
   }, [value, modifiersFromDb]);
+
+  useEffect(() => {
+    setHighlight(0);
+  }, [value]);
 
   return (
     <div className="relative flex min-w-[220px] max-w-md flex-1 flex-col gap-1 rounded-lg border border-zinc-700 bg-zinc-950/80 px-2 py-1.5 text-sm">
@@ -187,23 +241,60 @@ function ReforgeFilterRow({
           type="text"
           spellCheck={false}
           autoComplete="off"
+          role="combobox"
+          aria-expanded={open && suggestions.length > 0}
+          aria-autocomplete="list"
           placeholder="modifier (e.g. withered) — DB hints below"
           className="min-w-[120px] flex-1 rounded border border-zinc-600 bg-zinc-900 px-2 py-0.5 text-xs text-zinc-200 outline-none placeholder:text-zinc-600 focus:border-sky-500"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            setOpen(true);
+            onChange(e.target.value);
+          }}
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setOpen(false);
+              return;
+            }
+            if (!suggestions.length) return;
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setOpen(true);
+              setHighlight((h) => Math.min(suggestions.length - 1, h + 1));
+            } else if (e.key === "ArrowUp") {
+              e.preventDefault();
+              setOpen(true);
+              setHighlight((h) => Math.max(0, h - 1));
+            } else if (e.key === "Enter" && open) {
+              e.preventDefault();
+              const s = suggestions[highlight];
+              if (s) {
+                onChange(s);
+                setOpen(false);
+              }
+            }
+          }}
         />
         {remove}
       </div>
       {open && suggestions.length > 0 && (
-        <ul className="absolute left-0 right-0 top-full z-30 mt-0 max-h-36 overflow-y-auto rounded border border-zinc-700 bg-zinc-950 py-1 shadow-lg">
-          {suggestions.map((s) => (
-            <li key={s}>
+        <ul
+          role="listbox"
+          className="absolute left-0 right-0 top-full z-30 mt-0 max-h-36 overflow-y-auto rounded border border-zinc-700 bg-zinc-950 py-1 shadow-lg"
+        >
+          {suggestions.map((s, idx) => (
+            <li key={s} role="option" aria-selected={idx === highlight}>
               <button
                 type="button"
-                className="w-full px-2 py-1 text-left text-xs text-zinc-200 hover:bg-zinc-800"
+                className={`w-full px-2 py-1 text-left text-xs ${
+                  idx === highlight
+                    ? "bg-zinc-700 text-zinc-50"
+                    : "text-zinc-200 hover:bg-zinc-800"
+                }`}
                 onMouseDown={(e) => e.preventDefault()}
+                onMouseEnter={() => setHighlight(idx)}
                 onClick={() => {
                   onChange(s);
                   setOpen(false);
@@ -445,11 +536,13 @@ function renderFilterEditor(
         <KeySuggestFilterRow
           key={`dye-row-${i}`}
           label="Dye"
-          placeholder="ExtraAttributes dye id (e.g. AURORA_DYE)"
+          placeholder="dye_item / dye id (e.g. DYE_AQUAMARINE)"
           footer={
             <>
-              Matches <span className="text-zinc-500">extra_attributes→dye</span>{" "}
-              string. Fire Sale list is in code; type any valid id.
+              Matches <span className="text-zinc-500">dye_item</span> /{" "}
+              <span className="text-zinc-500">dye</span> /{" "}
+              <span className="text-zinc-500">Dye</span>. Suggestions merge built-in
+              ids with <span className="text-zinc-500">distinct values from your DB</span>.
             </>
           }
           keyValue={f.key}
@@ -537,15 +630,17 @@ export function BrowseFilterBar({ filters, onFiltersChange }: Props) {
         const j = (await res.json()) as unknown;
         if (!res.ok || cancelled) return;
         if (j && typeof j === "object") {
-          const h = j as BrowseFilterHints;
+          const h = j as Partial<BrowseFilterHints>;
           if (
             Array.isArray(h.enchant_keys) ||
-            Array.isArray(h.extra_attribute_keys)
+            Array.isArray(h.extra_attribute_keys) ||
+            Array.isArray(h.dye_ids)
           ) {
             setHints({
               enchant_keys: Array.isArray(h.enchant_keys)
                 ? h.enchant_keys
                 : [],
+              dye_ids: Array.isArray(h.dye_ids) ? h.dye_ids : [],
               extra_attribute_keys: Array.isArray(h.extra_attribute_keys)
                 ? h.extra_attribute_keys
                 : [],
@@ -578,7 +673,11 @@ export function BrowseFilterBar({ filters, onFiltersChange }: Props) {
     return [...s].sort((a, b) => a.localeCompare(b));
   }, [hints]);
 
-  const mergedDyeKeys = useMemo(() => [...SKYBLOCK_DYE_IDS], []);
+  const mergedDyeKeys = useMemo(() => {
+    const s = new Set<string>(SKYBLOCK_DYE_IDS);
+    for (const k of hints?.dye_ids ?? []) s.add(k);
+    return [...s].sort((a, b) => a.localeCompare(b));
+  }, [hints]);
   const mergedRuneKeys = useMemo(() => [...SKYBLOCK_RUNE_IDS], []);
   const mergedSkinKeys = useMemo(() => [...SKYBLOCK_SKIN_IDS], []);
 

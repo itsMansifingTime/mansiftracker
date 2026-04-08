@@ -14,6 +14,8 @@ pnpm dev
 bun dev
 ```
 
+`npm run dev` uses **webpack** (lighter on CPU/RAM than Next 16’s default Turbopack). If your machine handles it and you want Turbopack, use `npm run dev:turbo`.
+
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.

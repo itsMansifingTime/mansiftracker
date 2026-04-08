@@ -1,0 +1,16 @@
+---
+description: When the agent may start the Next.js dev server (user-requested only; avoid spam).
+alwaysApply: true
+---
+
+# Dev server
+
+- **May** run `npm run dev` (or `next dev`) when the **user explicitly asks** to start the dev server in that message — **at most once**, and prefer **one** terminal / one process.
+- **Do not** start the dev server unprompted, and **do not** fire multiple background `npm run dev` jobs in parallel or in a loop.
+- If the user only needs instructions, tell them: `cd` to the project, `npm run dev`, open http://localhost:3000 (this project uses webpack dev via `package.json`).
+
+To stop Next dev **Node** workers for this repo on Windows:
+
+`powershell -ExecutionPolicy Bypass -File .\scripts\stop-next-dev.ps1`
+
+Shell commands from the agent do **not** launch **Cursor.exe**. Many Cursor processes or windows are an **IDE** issue — report to Cursor support if needed.

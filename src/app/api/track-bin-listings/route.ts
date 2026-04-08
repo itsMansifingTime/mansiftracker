@@ -1,47 +1,39 @@
 import { NextResponse } from "next/server";
+
 import {
-  decodeSkyblockItemBytes,
-  normalizeHypixelItemBytesRaw,
-} from "@/lib/decode-item-bytes";
-import { normalizeUuid } from "@/lib/mojang";
+  binDealAlertsEnabled,
+  parseBinDealScannerEnv,
+} from "@/lib/bin-deal-scanner";
+import {
+  HYPIXEL_AUCTIONS,
+  parseSkipSupabaseSearchParam,
+  runStreamingDealScan,
+  type ActiveAuctionsPage,
+} from "@/lib/track-bin-streaming";
+import { runFullBinListingsSnapshot } from "@/lib/bin-listings-full-sync";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 120;
 
-const MAX_ITEM_BYTES_LEN = 500_000;
-const HYPIXEL_AUCTIONS = "https://api.hypixel.net/v2/skyblock/auctions";
-const UPSERT_CHUNK = 200;
+export const maxDuration = 300;
 
-type ActiveAuction = {
-  uuid: string;
-  auctioneer: string;
-  profile_id: string;
-  start: number;
-  end: number;
-  starting_bid: number;
-  bin?: boolean;
-  item_bytes?: unknown;
-};
-
-type ActiveAuctionsPage = {
-  success: boolean;
-  page: number;
-  totalPages: number;
-  totalAuctions: number;
-  auctions?: ActiveAuction[];
-};
+/** Fast deal path: never scan more than this many Hypixel pages (0-based … cap−1). */
+const DEAL_STREAM_PAGE_CAP = 5;
 
 /**
- * Scans Hypixel active `/v2/skyblock/auctions` (all pages by default), keeps
- * rows with `bin === true`, decodes item NBT like `track-sales`, and upserts
- * into `bin_listings` (first-seen only; duplicates ignored).
+ * Scans Hypixel active `/v2/skyblock/auctions`, keeps BIN rows, upserts `bin_listings`.
  *
- * Query: `maxPages` — optional cap (e.g. `10` for pages 0–9 only).
+ * **Deal alerts on:** first min(`DEAL_STREAM_PAGE_CAP`, `maxPages` or default, total pages) Hypixel pages — **streaming**: each BIN is decoded,
+ * upserted, then craft + Discord runs for allowlist hits before the next auction (fast ping).
+ *
+ * **Deal alerts off:** full paginated fetch, parallel decode, chunked upsert (full AH to DB).
  */
 export async function GET(req: Request) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) {
+  const { searchParams } = new URL(req.url);
+  const skipSupabase = parseSkipSupabaseSearchParam(searchParams);
+  const supabase = skipSupabase ? null : getSupabaseAdmin();
+
+  if (!skipSupabase && !supabase) {
     return NextResponse.json(
       {
         error:
@@ -51,12 +43,24 @@ export async function GET(req: Request) {
     );
   }
 
-  const { searchParams } = new URL(req.url);
-  const maxPagesRaw = searchParams.get("maxPages");
-  const maxPages =
-    maxPagesRaw !== null && maxPagesRaw !== ""
-      ? Math.max(1, Math.min(500, Number.parseInt(maxPagesRaw, 10) || 1))
+  const dealCfg = parseBinDealScannerEnv();
+  const dealEnabled = binDealAlertsEnabled(dealCfg);
+
+  let maxPages: number | null =
+    searchParams.get("maxPages") !== null &&
+    searchParams.get("maxPages") !== ""
+      ? Math.max(
+          1,
+          Math.min(500, Number.parseInt(searchParams.get("maxPages")!, 10) || 1)
+        )
       : null;
+
+  if (maxPages === null && dealEnabled) {
+    const raw = process.env.BIN_DEAL_SCAN_DEFAULT_MAX_PAGES?.trim();
+    if (raw !== undefined && raw !== "") {
+      maxPages = Math.max(1, Math.min(500, Number.parseInt(raw, 10) || 1));
+    }
+  }
 
   const firstRes = await fetch(`${HYPIXEL_AUCTIONS}?page=0`, {
     cache: "no-store",
@@ -77,108 +81,72 @@ export async function GET(req: Request) {
   }
 
   const totalPages = first.totalPages ?? 1;
+
+  if (dealEnabled) {
+    const requested = maxPages ?? 5;
+    const streamPageLimit = Math.min(requested, DEAL_STREAM_PAGE_CAP, totalPages);
+    try {
+      const stream = await runStreamingDealScan(
+        supabase,
+        dealCfg,
+        streamPageLimit,
+        first,
+        skipSupabase
+      );
+      return NextResponse.json({
+        ok: true,
+        dealStreaming: true as const,
+        skipSupabase,
+        pagesFetched: stream.pagesFetched,
+        totalPagesAvailable: stream.totalPagesAvailable,
+        activeAuctionsScanned: stream.activeAuctionsScanned,
+        binAuctionsProcessed: stream.binAuctionsProcessed,
+        upsertChunks: null,
+        dealAlertsConfigured: true,
+        dealAlerts: stream.dealAlerts,
+        ...(stream.binListingsUpsertSkipped
+          ? {
+              binListingsUpsertSkipped: true as const,
+              hint: "Run supabase/schema.sql (bin_listings) or supabase/add_bin_listings.sql in Supabase.",
+            }
+          : {}),
+      });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+  }
+
   const pageLimit =
     maxPages !== null ? Math.min(maxPages, totalPages) : totalPages;
 
-  const allAuctions: ActiveAuction[] = [...first.auctions];
-
-  for (let p = 1; p < pageLimit; p++) {
-    const res = await fetch(`${HYPIXEL_AUCTIONS}?page=${p}`, {
-      cache: "no-store",
-    });
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: `Hypixel auctions HTTP ${res.status} (page ${p})` },
-        { status: 502 }
-      );
-    }
-    const j = (await res.json()) as ActiveAuctionsPage;
-    if (!j.success || !j.auctions) {
-      return NextResponse.json(
-        { error: `Hypixel auctions invalid response (page ${p})` },
-        { status: 502 }
-      );
-    }
-    allAuctions.push(...j.auctions);
+  const sync = await runFullBinListingsSnapshot(supabase, {
+    replaceSnapshot: false,
+    skipSupabase,
+    pagesToFetch: pageLimit,
+    firstPage: first,
+  });
+  if (!sync.ok) {
+    const status = sync.error.includes("Hypixel") ? 502 : 500;
+    return NextResponse.json({ error: sync.error }, { status });
   }
-
-  const binOnly = allAuctions.filter((a) => a.bin === true);
-  const firstSeenAt = new Date().toISOString();
-
-  type Row = {
-    auction_id: string;
-    seller_uuid: string;
-    seller_profile: string | null;
-    starting_bid: number;
-    start_at: string;
-    end_at: string;
-    item_bytes: string | null;
-    first_seen_at: string;
-    item_id: string | null;
-    item_name: string | null;
-    item_uuid: string | null;
-    minecraft_item_id: number | null;
-    item_json: Record<string, unknown> | unknown[] | null;
-  };
-
-  const rows: Row[] = [];
-  const DECODE_PARALLEL = 32;
-
-  for (let i = 0; i < binOnly.length; i += DECODE_PARALLEL) {
-    const slice = binOnly.slice(i, i + DECODE_PARALLEL);
-    const batch = await Promise.all(
-      slice.map(async (a): Promise<Row> => {
-        const raw = normalizeHypixelItemBytesRaw(a.item_bytes);
-        const itemBytes =
-          raw && raw.length > MAX_ITEM_BYTES_LEN
-            ? raw.slice(0, MAX_ITEM_BYTES_LEN)
-            : raw ?? null;
-
-        const decoded = await decodeSkyblockItemBytes(itemBytes);
-
-        return {
-          auction_id: a.uuid,
-          seller_uuid: normalizeUuid(a.auctioneer),
-          seller_profile: a.profile_id ?? null,
-          starting_bid: Math.floor(a.starting_bid),
-          start_at: new Date(a.start).toISOString(),
-          end_at: new Date(a.end).toISOString(),
-          item_bytes: itemBytes,
-          first_seen_at: firstSeenAt,
-          item_id: decoded.itemId,
-          item_name: decoded.itemName,
-          item_uuid: decoded.itemUuid,
-          minecraft_item_id: decoded.minecraftItemId,
-          item_json: decoded.fullNbt,
-        };
-      })
-    );
-    rows.push(...batch);
-  }
-
-  for (let i = 0; i < rows.length; i += UPSERT_CHUNK) {
-    const chunk = rows.slice(i, i + UPSERT_CHUNK);
-    const { error } = await supabase.from("bin_listings").upsert(chunk, {
-      onConflict: "auction_id",
-      ignoreDuplicates: true,
-    });
-    if (error) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          upsertChunkIndex: Math.floor(i / UPSERT_CHUNK),
-        },
-        { status: 500 }
-      );
-    }
-  }
+  const d = sync.data;
 
   return NextResponse.json({
     ok: true,
-    pagesFetched: pageLimit,
-    totalPagesAvailable: totalPages,
-    activeAuctionsScanned: allAuctions.length,
-    binAuctionsProcessed: binOnly.length,
-    upsertChunks: Math.ceil(rows.length / UPSERT_CHUNK) || 0,
+    dealStreaming: false as const,
+    skipSupabase,
+    pagesFetched: d.pagesFetched,
+    totalPagesAvailable: d.totalPagesAvailable,
+    activeAuctionsScanned: d.activeAuctionsScanned,
+    binAuctionsProcessed: d.binAuctionsProcessed,
+    upsertChunks: d.upsertChunks,
+    ...(d.binListingsUpsertSkipped
+      ? {
+          binListingsUpsertSkipped: true as const,
+          hint: "Run supabase/schema.sql (bin_listings) or supabase/add_bin_listings.sql in Supabase.",
+        }
+      : {}),
+    dealAlertsConfigured: false,
   });
 }

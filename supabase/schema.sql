@@ -88,6 +88,19 @@ as $$
   );
 $$;
 
+-- True if ExtraAttributes carries a SkyBlock dye id. Hypixel uses `dye_item` (e.g. DYE_AQUAMARINE)
+-- for armor/cosmetic dyes; some items may still use `dye` / `Dye`.
+create or replace function public.dye_present_from_extra_attributes(e jsonb)
+returns boolean
+language sql
+immutable
+parallel safe
+as $$
+  select coalesce(e ? 'dye', false)
+    or coalesce(e ? 'Dye', false)
+    or coalesce(e ? 'dye_item', false);
+$$;
+
 -- Browse filters: flat columns so PostgREST can filter reliably (nested `item_json->i->0->...`
 -- in query params is brittle; Hypixel also uses either `i[0].tag` or root `tag` shapes).
 alter table public.ended_auctions
@@ -153,8 +166,7 @@ create index if not exists ended_auctions_upgrade_level_idx
 alter table public.ended_auctions
   add column if not exists dye_present boolean
   generated always as (
-    coalesce(public.extra_attributes_jsonb(item_json) ? 'dye', false)
-    or coalesce(public.extra_attributes_jsonb(item_json) ? 'Dye', false)
+    public.dye_present_from_extra_attributes(public.extra_attributes_jsonb(item_json))
   ) stored;
 
 alter table public.ended_auctions
@@ -198,7 +210,8 @@ create table if not exists public.bin_listings (
   item_name text,
   item_uuid text,
   minecraft_item_id bigint,
-  item_json jsonb
+  item_json jsonb,
+  is_bin boolean not null default true
 );
 
 create index if not exists bin_listings_first_seen_at_idx
@@ -209,3 +222,22 @@ create index if not exists bin_listings_seller_uuid_idx
 
 create index if not exists bin_listings_item_id_idx
   on public.bin_listings (item_id);
+
+-- BIN deal scanner: Discord alert dedupe (GET /api/track-bin-listings + BIN_DEAL_* env).
+create table if not exists public.bin_deal_alert_sent (
+  auction_id text primary key,
+  alerted_at timestamptz not null default now()
+);
+
+-- Hypixel AH snapshot (all active auctions from paginated /v2/skyblock/auctions).
+-- See supabase/hypixel_active_auctions.sql
+create table if not exists public.hypixel_active_auctions (
+  auction_id text primary key,
+  item_bytes text,
+  is_bin boolean not null default false,
+  sync_run_id uuid not null,
+  synced_at timestamptz not null default now()
+);
+
+create index if not exists hypixel_active_auctions_sync_run_id_idx
+  on public.hypixel_active_auctions (sync_run_id);

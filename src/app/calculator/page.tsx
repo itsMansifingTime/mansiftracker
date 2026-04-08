@@ -28,6 +28,11 @@ type ApiResult = {
   requiredSellPrice: number;
   necronLowestBin: number;
   handleAutoCoins: number;
+  gemstoneSlotWiki?: {
+    sourceUrl: string;
+    snapshotRelativePath: string;
+    markdownApiPath: string;
+  };
 };
 
 const selectClass =
@@ -41,6 +46,9 @@ export default function CalculatorPage() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [data, setData] = useState<ApiResult | null>(null);
+  const [gemWikiMd, setGemWikiMd] = useState<string | null>(null);
+  const [gemWikiErr, setGemWikiErr] = useState<string | null>(null);
+  const [gemWikiLoading, setGemWikiLoading] = useState(false);
 
   const profitParsed = parseCoinShorthand(profitInput);
   const profitInvalid =
@@ -93,6 +101,25 @@ export default function CalculatorPage() {
     run();
   }, [run]);
 
+  const loadGemWikiSnapshot = useCallback(async () => {
+    if (gemWikiMd !== null || gemWikiLoading) return;
+    setGemWikiLoading(true);
+    setGemWikiErr(null);
+    try {
+      const path =
+        data?.gemstoneSlotWiki?.markdownApiPath ?? "/api/gemstone-slot-wiki";
+      const res = await fetch(path);
+      const j = (await res.json()) as { markdown?: string; error?: string };
+      if (!res.ok) throw new Error(j.error || res.statusText);
+      if (typeof j.markdown !== "string") throw new Error("Invalid response");
+      setGemWikiMd(j.markdown);
+    } catch (e) {
+      setGemWikiErr(e instanceof Error ? e.message : "Failed to load");
+    } finally {
+      setGemWikiLoading(false);
+    }
+  }, [data?.gemstoneSlotWiki?.markdownApiPath, gemWikiMd, gemWikiLoading]);
+
   function patch<K extends keyof CalculatorOptions>(
     key: K,
     value: CalculatorOptions[K]
@@ -112,16 +139,15 @@ export default function CalculatorPage() {
             Bazaar: most lines use{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
               buy_summary[0]
-            </code>
-            ; scrolls use{" "}
-            <code className="rounded bg-zinc-800 px-1 text-xs">
-              buy_summary[0]
-            </code>
-            (instant buy) or{" "}
+            </code>{" "}
+            (instant buy, higher). WIMP scrolls: toggle between{" "}
+            <strong className="font-medium text-zinc-400">buy order</strong>{" "}
+            (<code className="rounded bg-zinc-800 px-1 text-xs">buy_summary</code>{" "}
+            + quick_status when empty) and{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
               sell_summary[0]
-            </code>
-            (buy order) — note: Hypixel naming reversed. Toggle in WIMP section.
+            </code>{" "}
+            (instant sell, lower).
             Handle: CoflNet lowest BIN.
             Cached ~45–60s.
           </p>
@@ -243,6 +269,42 @@ export default function CalculatorPage() {
                   ). Flawless/perfect lines price two socketed sapphires (✎ +
                   ⚔, mage build).
               </p>
+              <details
+                className="mt-3 rounded-lg border border-zinc-700/80 bg-zinc-950/40"
+                onToggle={(e) => {
+                  if (e.currentTarget.open) void loadGemWikiSnapshot();
+                }}
+              >
+                <summary className="cursor-pointer select-none px-3 py-2 text-xs font-medium text-zinc-400 hover:text-zinc-300">
+                  Local Gemstone Slot wiki snapshot (full page)
+                </summary>
+                <div className="border-t border-zinc-800 px-3 py-2">
+                  <p className="mb-2 text-[11px] text-zinc-500">
+                    Markdown saved in-repo for this calculator. For the current
+                    live page, use the{" "}
+                    <a
+                      href="https://hypixel-skyblock.fandom.com/wiki/Gemstone_Slot"
+                      className="text-sky-400 underline underline-offset-2"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Fandom wiki
+                    </a>
+                    .
+                  </p>
+                  {gemWikiLoading && (
+                    <p className="text-xs text-zinc-500">Loading…</p>
+                  )}
+                  {gemWikiErr && (
+                    <p className="text-xs text-red-400">{gemWikiErr}</p>
+                  )}
+                  {gemWikiMd !== null && (
+                    <pre className="max-h-[28rem] overflow-auto whitespace-pre-wrap break-words font-mono text-[10px] leading-relaxed text-zinc-400">
+                      {gemWikiMd}
+                    </pre>
+                  )}
+                </div>
+              </details>
             </section>
 
             <section className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
@@ -269,9 +331,13 @@ export default function CalculatorPage() {
                   = regular ★ (wiki essence + coins; Wither at{" "}
                   <code className="rounded bg-zinc-800 px-1 text-[10px]">
                     sell_summary[0]
-                  </code>
-                  ); <strong className="text-zinc-400">6–10</strong> = five regular
-                  plus master ★ (buy orders on master items).{" "}
+                  </code>{" "}
+                  = instant sell, lower); <strong className="text-zinc-400">6–10</strong> = five regular
+                  plus master ★ (
+                  <code className="rounded bg-zinc-800 px-1 text-[10px]">
+                    buy_summary[0]
+                  </code>{" "}
+                  on master items).{" "}
                   <strong className="text-zinc-400">0</strong> = off.
                 </p>
               </div>
@@ -372,6 +438,17 @@ export default function CalculatorPage() {
                     />
                     Recomb
                   </label>
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      className="rounded border-zinc-600 bg-zinc-900 text-sky-500"
+                      checked={opts.includeArtOfWar}
+                      onChange={() =>
+                        patch("includeArtOfWar", !opts.includeArtOfWar)
+                      }
+                    />
+                    The Art of War
+                  </label>
                 </div>
               </div>
             </section>
@@ -455,12 +532,12 @@ export default function CalculatorPage() {
                         patch("scrollsInstantBuy", !opts.scrollsInstantBuy)
                       }
                     />
-                    Instant buy
+                    Instant buy (scrolls)
                   </label>
                   <p className="mt-0.5 text-xs text-zinc-500">
                     {opts.scrollsInstantBuy
-                      ? "buy_summary[0] (instant buy)"
-                      : "sell_summary[0] (buy order)"}
+                      ? "buy_summary[0] — instant buy (higher)"
+                      : "sell_summary[0] — instant sell (lower)"}
                   </p>
                 </span>
               </div>

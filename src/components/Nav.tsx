@@ -4,10 +4,16 @@ const links = [
   { href: "/", label: "Home" },
   { href: "/calculator", label: "Hyperion" },
   { href: "/terminator", label: "Terminator" },
+  { href: "/kuudra-armor", label: "Kuudra armor" },
   { href: "/breakdown", label: "Breakdown" },
   { href: "/dashboard", label: "Dashboard" },
   { href: "/tracker", label: "Tracker" },
   { href: "/browse", label: "Browse" },
+  { href: "/hyperion-bin-verify", label: "Hyp verify" },
+  { href: "/bin-scanner", label: "BIN scanner" },
+  { href: "/wide-bin-scan", label: "Wide scan" },
+  { href: "/ah-snapshot", label: "AH snapshot" },
+  { href: "/bazaar-snapshot", label: "Bazaar" },
 ];
 
 export function Nav() {

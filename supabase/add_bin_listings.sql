@@ -14,7 +14,8 @@ create table if not exists public.bin_listings (
   item_name text,
   item_uuid text,
   minecraft_item_id bigint,
-  item_json jsonb
+  item_json jsonb,
+  is_bin boolean not null default true
 );
 
 create index if not exists bin_listings_first_seen_at_idx

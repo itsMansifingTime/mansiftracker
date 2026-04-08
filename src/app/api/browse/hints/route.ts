@@ -40,6 +40,7 @@ export async function GET() {
 
   const hints: BrowseFilterHints = {
     enchant_keys: asStringArray(raw.enchant_keys),
+    dye_ids: asStringArray(raw.dye_ids),
     extra_attribute_keys: asStringArray(raw.extra_attribute_keys),
     modifiers: asStringArray(raw.modifiers),
     item_rarities: asStringArray(raw.item_rarities),

@@ -25,6 +25,41 @@ as $$
       ),
       '[]'::jsonb
     ),
+    'dye_ids', coalesce(
+      (
+        select to_jsonb(coalesce(array_agg(x order by x), array[]::text[]))
+        from (
+          select distinct trim(v) as x
+          from (
+            select extra_attributes->>'dye_item' as v
+            from public.ended_auctions
+            where extra_attributes is not null
+            union all
+            select extra_attributes->>'dye_item' as v
+            from public.bin_listings
+            where extra_attributes is not null
+            union all
+            select extra_attributes->>'dye' as v
+            from public.ended_auctions
+            where extra_attributes is not null
+            union all
+            select extra_attributes->>'dye' as v
+            from public.bin_listings
+            where extra_attributes is not null
+            union all
+            select extra_attributes->>'Dye' as v
+            from public.ended_auctions
+            where extra_attributes is not null
+            union all
+            select extra_attributes->>'Dye' as v
+            from public.bin_listings
+            where extra_attributes is not null
+          ) raw
+          where trim(coalesce(v, '')) <> ''
+        ) d
+      ),
+      '[]'::jsonb
+    ),
     'modifiers', coalesce(
       (
         select to_jsonb(coalesce(array_agg(x order by x), array[]::text[]))
