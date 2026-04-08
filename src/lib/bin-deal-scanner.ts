@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
+import { computeTerminatorCraftCost } from "./terminator-calculator";
+import {
+  DEFAULT_TERMINATOR_CRAFT_OPTIONS,
+  type TerminatorCraftOptions,
+} from "./terminator-options";
 
 /** Deal Discord alerts always price craft with instant sell (`sell_summary`) — not buy-side. */
 const DEAL_ALERT_BAZAAR_MODE = "instant_sell" as const;
@@ -15,9 +20,50 @@ export type BinDealScannerEnvConfig = {
 };
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
+const TERMINATOR_ITEM_ID = "TERMINATOR";
+const TERMINATOR_CACHE_TTL_MS = 60_000;
+
+const TERMINATOR_DEAL_BASE_OPTIONS: TerminatorCraftOptions = {
+  ...DEFAULT_TERMINATOR_CRAFT_OPTIONS,
+  // Deal scanner compares raw craft baseline, not listing-specific add-ons.
+  hotPotatoBooksCount: 0,
+  includeFumingPotatoBook: false,
+  includeRecomb: false,
+  includeArtOfWar: false,
+};
+
+let terminatorBaseCraftCache:
+  | { value: number; expiresAt: number }
+  | null = null;
+let terminatorBaseCraftInFlight: Promise<number> | null = null;
 
 function isSupabaseMissingTableMessage(msg: string): boolean {
   return /could not find the table|PGRST205|schema cache/i.test(msg);
+}
+
+async function getTerminatorBaseCraftCost(nowMs = Date.now()): Promise<number> {
+  if (terminatorBaseCraftCache && terminatorBaseCraftCache.expiresAt > nowMs) {
+    return terminatorBaseCraftCache.value;
+  }
+  if (terminatorBaseCraftInFlight) return terminatorBaseCraftInFlight;
+
+  terminatorBaseCraftInFlight = computeTerminatorCraftCost(
+    null,
+    TERMINATOR_DEAL_BASE_OPTIONS
+  )
+    .then((r) => {
+      const value = Math.max(0, Math.floor(r.total));
+      terminatorBaseCraftCache = {
+        value,
+        expiresAt: Date.now() + TERMINATOR_CACHE_TTL_MS,
+      };
+      return value;
+    })
+    .finally(() => {
+      terminatorBaseCraftInFlight = null;
+    });
+
+  return terminatorBaseCraftInFlight;
 }
 
 /**
@@ -137,25 +183,44 @@ export async function processBinDealAlertForRow(
 
   const tag = row.item_id?.trim().toUpperCase();
   if (!tag || !cfg.itemIds.has(tag)) return;
-  if (!row.item_bytes?.trim()) return;
+  if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) return;
   stats.candidates++;
 
   const startingBid = Math.floor(row.starting_bid);
   const webhookUrl = cfg.webhookUrl!;
+  let craft = 0;
+  let itemName = tag;
+  let craftPricingLabel = "Instant sell (sell_summary) — bazaar craft lines";
 
-  const breakdown = await computeAuctionBreakdownFromItemBytes(
-    row.auction_id,
-    row.item_bytes,
-    { bazaarPriceMode: DEAL_ALERT_BAZAAR_MODE }
-  );
-  stats.craftChecks++;
+  if (tag === TERMINATOR_ITEM_ID) {
+    try {
+      craft = await getTerminatorBaseCraftCost();
+      itemName = "Terminator";
+      craftPricingLabel =
+        "Terminator base craft estimate (materials + Judgement Core), no listing add-ons";
+      stats.craftChecks++;
+    } catch (e) {
+      stats.skippedErrors++;
+      const msg = e instanceof Error ? e.message : String(e);
+      stats.discordErrors.push(`Terminator craft estimate failed: ${msg}`);
+      return;
+    }
+  } else {
+    const breakdown = await computeAuctionBreakdownFromItemBytes(
+      row.auction_id,
+      row.item_bytes,
+      { bazaarPriceMode: DEAL_ALERT_BAZAAR_MODE }
+    );
+    stats.craftChecks++;
 
-  if (breakdown.error || breakdown.total <= 0) {
-    stats.skippedErrors++;
-    return;
+    if (breakdown.error || breakdown.total <= 0) {
+      stats.skippedErrors++;
+      return;
+    }
+    craft = breakdown.total;
+    itemName = breakdown.auction.itemName;
   }
 
-  const craft = breakdown.total;
   const margin = craft - startingBid;
   const minNeed = cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins;
   if (margin < minNeed) {
@@ -189,14 +254,14 @@ export async function processBinDealAlertForRow(
   }
 
   const ok = await postBinDealDiscordEmbed(webhookUrl, {
-    itemName: breakdown.auction.itemName,
-    tag: breakdown.auction.tag,
+    itemName,
+    tag,
     auctionId: row.auction_id,
     startingBid,
     craftCost: craft,
     margin,
     coflUrl: `${COFL_AUCTION_BASE}/${encodeURIComponent(row.auction_id)}`,
-    craftPricingLabel: "Instant sell (sell_summary) — bazaar craft lines",
+    craftPricingLabel,
     listedForLabel: formatListedDuration(row.auction_start_ms),
   });
 
