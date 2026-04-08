@@ -8,13 +8,33 @@ export type BinDealScannerEnvConfig = {
   webhookUrl: string | null;
   /** Uppercase SkyBlock item ids (e.g. HYPERION,VALKYRIE,SCYLLA,ASTRAEA). Empty = deal alerts disabled. */
   itemIds: Set<string>;
+  /** Default minimum margin (craft − BIN) for items without a per-tag override. */
   minMarginCoins: number;
+  /** Optional per-item minimum margins; overrides `minMarginCoins` for that SkyBlock id. */
+  itemMarginByTag: Map<string, number>;
 };
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 
 function isSupabaseMissingTableMessage(msg: string): boolean {
   return /could not find the table|PGRST205|schema cache/i.test(msg);
+}
+
+/**
+ * `BIN_DEAL_ITEM_MARGINS=TERMINATOR:30000000,HYPERION:1000000` — comma-separated TAG:coins pairs.
+ */
+function parseItemMarginByTag(raw: string | undefined): Map<string, number> {
+  const m = new Map<string, number>();
+  if (!raw?.trim()) return m;
+  for (const segment of raw.split(",")) {
+    const idx = segment.indexOf(":");
+    if (idx <= 0) continue;
+    const id = segment.slice(0, idx).trim().toUpperCase();
+    const numPart = segment.slice(idx + 1).trim().replace(/_/g, "");
+    const n = Number.parseInt(numPart, 10);
+    if (id && Number.isFinite(n) && n >= 0) m.set(id, n);
+  }
+  return m;
 }
 
 export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
@@ -33,8 +53,11 @@ export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
     0,
     minRaw ? Number.parseInt(minRaw, 10) || 0 : 1_000_000
   );
+  const itemMarginByTag = parseItemMarginByTag(
+    process.env.BIN_DEAL_ITEM_MARGINS?.trim()
+  );
 
-  return { webhookUrl, itemIds, minMarginCoins };
+  return { webhookUrl, itemIds, minMarginCoins, itemMarginByTag };
 }
 
 export function binDealAlertsEnabled(cfg: BinDealScannerEnvConfig): boolean {
@@ -67,7 +90,10 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
     0,
     minRaw ? Number.parseInt(minRaw, 10) || 0 : 1_000_000
   );
-  return { webhookUrl, itemIds, minMarginCoins };
+  const itemMarginByTag = parseItemMarginByTag(
+    process.env.BIN_DEAL_ITEM_MARGINS?.trim()
+  );
+  return { webhookUrl, itemIds, minMarginCoins, itemMarginByTag };
 }
 
 export type BinDealRowInput = {
@@ -131,7 +157,8 @@ export async function processBinDealAlertForRow(
 
   const craft = breakdown.total;
   const margin = craft - startingBid;
-  if (margin < cfg.minMarginCoins) {
+  const minNeed = cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins;
+  if (margin < minNeed) {
     stats.skippedBelowMargin++;
     return;
   }
