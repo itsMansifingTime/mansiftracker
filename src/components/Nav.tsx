@@ -10,7 +10,7 @@ const links = [
   { href: "/tracker", label: "Tracker" },
   { href: "/browse", label: "Browse" },
   { href: "/hyperion-bin-verify", label: "Hyp verify" },
-  { href: "/bin-scanner", label: "BIN scanner" },
+  { href: "/bin-sniper", label: "BIN SNIPER" },
   { href: "/wide-bin-scan", label: "Wide scan" },
   { href: "/ah-snapshot", label: "AH snapshot" },
   { href: "/bazaar-snapshot", label: "Bazaar" },

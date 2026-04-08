@@ -104,7 +104,7 @@ export default function WideBinScanPage() {
               BIN_DEAL_WIDE_WEBHOOK_URL
             </code>
             , or falls back to the main deal webhook). Craft + Discord use the same
-            instant-sell bazaar logic as the main BIN scanner. Overlap with the 30s scanner is
+            instant-sell bazaar logic as BIN SNIPER. Overlap with the 30s tab is
             mostly extra Hypixel traffic — stagger tabs or accept shared rate limits.
           </p>
         </div>

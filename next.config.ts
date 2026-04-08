@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      { source: "/bin-scanner", destination: "/bin-sniper", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

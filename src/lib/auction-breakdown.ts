@@ -269,7 +269,7 @@ export async function computeAuctionBreakdown(
 }
 
 /**
- * Craft breakdown from raw Hypixel `item_bytes` (e.g. BIN scanner) — no Supabase snapshot,
+ * Craft breakdown from raw Hypixel `item_bytes` (e.g. BIN SNIPER) — no Supabase snapshot,
  * Cofl, or single-auction API fetch. Uses the same Hyperion / generic paths as the main
  * breakdown when NBT comes from Hypixel decode.
  */

@@ -14,7 +14,7 @@ function formatScanDuration(ms: number): string {
   return `${m}m ${rem < 10 ? rem.toFixed(1) : Math.round(rem)}s`;
 }
 
-export default function BinScannerPage() {
+export default function BinSniperPage() {
   const [enabled, setEnabled] = useState(false);
   /** `null` = omit param → server fetches every Hypixel page (needed for new Hyperion BINs). */
   const [maxPages, setMaxPages] = useState<number | null>(null);
@@ -91,30 +91,36 @@ export default function BinScannerPage() {
       <Nav />
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-8">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">BIN scanner</h1>
+          <h1 className="text-xl font-semibold tracking-tight">BIN SNIPER</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Calls <code className="rounded bg-zinc-800 px-1 text-xs">GET /api/track-bin-listings?skipSupabase=1</code>{" "}
-            every {INTERVAL_MS / 1000}s while <strong className="text-zinc-400">On</strong>. Leave this tab open.
-            Scans <strong className="text-zinc-400">do not write to Supabase</strong> (no{" "}
+            Calls{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">
+              GET /api/track-bin-listings?skipSupabase=1
+            </code>{" "}
+            every {INTERVAL_MS / 1000}s only while <strong className="text-zinc-400">enabled</strong> below.
+            Leave this tab open. Scans{" "}
+            <strong className="text-zinc-400">do not write to Supabase</strong> (no{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">bin_listings</code> or deal dedupe). With{" "}
             <strong className="text-zinc-400">Discord deal alerts</strong> env set, each run walks Hypixel pages{" "}
-            <strong className="text-zinc-400">0–4</strong> (capped): every BIN is decoded one-by-one,             allowlisted items (e.g. Necron’s Blade line:{" "}
+            <strong className="text-zinc-400">0–4</strong> (capped): every BIN is decoded one-by-one, allowlisted
+            items (e.g. Necron’s Blade line:{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
               HYPERION,VALKYRIE,SCYLLA,ASTRAEA
             </code>
-            ) get craft cost + Discord when margin clears (no DB). Without deal env, the route still runs a
-            full paginated scan in parallel decode mode but skips DB writes. If a run is still in progress, the next
-            tick is skipped (no overlap).
+            ) get craft cost + Discord when margin clears (no DB). Without deal env, the route still runs a full
+            paginated scan in parallel decode mode but skips DB writes. If a run is still in progress, the next tick is
+            skipped (no overlap).
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-6">
           <label className="flex cursor-pointer items-center gap-3 text-sm">
-            <span className="text-zinc-400">Scanner</span>
+            <span className="text-zinc-400">Sniper</span>
             <button
               type="button"
               role="switch"
               aria-checked={enabled}
+              aria-label="BIN SNIPER polling"
               onClick={() => setEnabled((v) => !v)}
               className={`relative h-8 w-14 rounded-full transition ${
                 enabled ? "bg-emerald-600" : "bg-zinc-700"
@@ -127,7 +133,7 @@ export default function BinScannerPage() {
               />
             </button>
             <span className="font-medium text-zinc-200">
-              {enabled ? "On" : "Off"}
+              {enabled ? "Enabled" : "Disabled"}
             </span>
           </label>
 
@@ -157,9 +163,9 @@ export default function BinScannerPage() {
           <div className="text-zinc-500">
             Status:{" "}
             {enabled ? (
-              <span className="text-emerald-400">running every {INTERVAL_MS / 1000}s</span>
+              <span className="text-emerald-400">polling every {INTERVAL_MS / 1000}s</span>
             ) : (
-              <span className="text-zinc-400">idle — turn On to start</span>
+              <span className="text-zinc-400">idle — disabled until you enable</span>
             )}
             {running ? (
               <span className="ml-2 text-amber-400">· scan in progress…</span>

@@ -74,7 +74,7 @@ export default function HyperionBinVerifyPage() {
           <p className="mt-2 max-w-3xl text-sm text-zinc-500">
             Reads recent <code className="rounded bg-zinc-800 px-1 text-xs">HYPERION</code>{" "}
             rows from <code className="rounded bg-zinc-800 px-1 text-xs">bin_listings</code>{" "}
-            (first-seen log from the BIN scanner) and recomputes craft cost with the same
+            (first-seen log from BIN SNIPER / track pipeline) and recomputes craft cost with the same
             breakdown logic as deal alerts — including listings that never triggered Discord.
           </p>
         </div>
@@ -152,7 +152,7 @@ export default function HyperionBinVerifyPage() {
               ) : rows.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-3 py-8 text-center text-zinc-500">
-                    No HYPERION rows in bin_listings yet. Run the BIN scanner (
+                    No HYPERION rows in bin_listings yet. Run tracking / BIN SNIPER (
                     <code className="rounded bg-zinc-800 px-1">npm run track:bin</code>
                     ).
                   </td>

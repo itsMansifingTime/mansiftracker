@@ -688,7 +688,7 @@ export default function BrowsePage() {
                           colSpan={8}
                           className="px-3 py-8 text-center text-zinc-500"
                         >
-                          No rows. Run the BIN scanner or full snapshot, or widen your search.
+                          No rows. Run BIN SNIPER / full snapshot, or widen your search.
                         </td>
                       </tr>
                     ) : (
