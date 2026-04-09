@@ -21,7 +21,18 @@ export type BinDealScannerEnvConfig = {
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 const TERMINATOR_ITEM_ID = "TERMINATOR";
+const HYPERION_ITEM_ID = "HYPERION";
+/** Do not Discord-ping Hyperion when listing price (starting bid / BIN) is above this. */
+const DEFAULT_HYPERION_ALERT_MAX_STARTING_BID = 2_000_000_000;
 const TERMINATOR_CACHE_TTL_MS = 60_000;
+
+function hyperionAlertMaxStartingBidCoins(): number {
+  const raw = process.env.BIN_DEAL_HYPERION_ALERT_MAX_STARTING_BID?.trim();
+  if (raw === "0") return Number.POSITIVE_INFINITY;
+  if (!raw) return DEFAULT_HYPERION_ALERT_MAX_STARTING_BID;
+  const n = Number.parseInt(raw.replace(/_/g, ""), 10);
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_HYPERION_ALERT_MAX_STARTING_BID;
+}
 
 const TERMINATOR_DEAL_BASE_OPTIONS: TerminatorCraftOptions = {
   ...DEFAULT_TERMINATOR_CRAFT_OPTIONS,
@@ -157,6 +168,8 @@ export type BinDealAlertStats = {
   alertsSent: number;
   skippedAlreadyAlerted: number;
   skippedBelowMargin: number;
+  /** HYPERION listings skipped: starting bid above cap (default 2B). */
+  skippedHyperionListingOverBinCap: number;
   skippedErrors: number;
   discordErrors: string[];
   /** Dedupe table missing — alerts sent without insert (possible repeats on reruns). */
@@ -184,9 +197,17 @@ export async function processBinDealAlertForRow(
   const tag = row.item_id?.trim().toUpperCase();
   if (!tag || !cfg.itemIds.has(tag)) return;
   if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) return;
-  stats.candidates++;
 
   const startingBid = Math.floor(row.starting_bid);
+  if (
+    tag === HYPERION_ITEM_ID &&
+    startingBid > hyperionAlertMaxStartingBidCoins()
+  ) {
+    stats.skippedHyperionListingOverBinCap++;
+    return;
+  }
+
+  stats.candidates++;
   const webhookUrl = cfg.webhookUrl!;
   let craft = 0;
   let itemName = tag;
@@ -290,6 +311,7 @@ export async function processBinDealAlerts(
     alertsSent: 0,
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
+    skippedHyperionListingOverBinCap: 0,
     skippedErrors: 0,
     discordErrors: [],
   };
