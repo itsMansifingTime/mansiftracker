@@ -145,7 +145,7 @@ export async function runStreamingDealScan(
     alertsSent: 0,
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
-    skippedHyperionListingOverBinCap: 0,
+    skippedNecronBladeListingOverBinCap: 0,
     skippedErrors: 0,
     discordErrors: [],
   };

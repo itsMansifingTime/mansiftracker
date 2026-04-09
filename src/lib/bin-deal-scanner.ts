@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
+import { isNecronsBladeItemId } from "./gemstone-slots";
 import { computeTerminatorCraftCost } from "./terminator-calculator";
 import {
   DEFAULT_TERMINATOR_CRAFT_OPTIONS,
@@ -21,17 +22,20 @@ export type BinDealScannerEnvConfig = {
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 const TERMINATOR_ITEM_ID = "TERMINATOR";
-const HYPERION_ITEM_ID = "HYPERION";
-/** Do not Discord-ping Hyperion when listing price (starting bid / BIN) is above this. */
-const DEFAULT_HYPERION_ALERT_MAX_STARTING_BID = 2_000_000_000;
+/** Necron’s Blade line (HYPERION / VALKYRIE / SCYLLA / ASTRAEA): no ping if listing BIN is above this. */
+const DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID = 2_000_000_000;
 const TERMINATOR_CACHE_TTL_MS = 60_000;
 
-function hyperionAlertMaxStartingBidCoins(): number {
-  const raw = process.env.BIN_DEAL_HYPERION_ALERT_MAX_STARTING_BID?.trim();
+function necronsBladeAlertMaxStartingBidCoins(): number {
+  const raw =
+    process.env.BIN_DEAL_NECRON_BLADE_ALERT_MAX_STARTING_BID?.trim() ||
+    process.env.BIN_DEAL_HYPERION_ALERT_MAX_STARTING_BID?.trim();
   if (raw === "0") return Number.POSITIVE_INFINITY;
-  if (!raw) return DEFAULT_HYPERION_ALERT_MAX_STARTING_BID;
+  if (!raw) return DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID;
   const n = Number.parseInt(raw.replace(/_/g, ""), 10);
-  return Number.isFinite(n) && n > 0 ? n : DEFAULT_HYPERION_ALERT_MAX_STARTING_BID;
+  return Number.isFinite(n) && n > 0
+    ? n
+    : DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID;
 }
 
 const TERMINATOR_DEAL_BASE_OPTIONS: TerminatorCraftOptions = {
@@ -168,8 +172,8 @@ export type BinDealAlertStats = {
   alertsSent: number;
   skippedAlreadyAlerted: number;
   skippedBelowMargin: number;
-  /** HYPERION listings skipped: starting bid above cap (default 2B). */
-  skippedHyperionListingOverBinCap: number;
+  /** Necron’s Blade line: starting bid above cap (default 2B). */
+  skippedNecronBladeListingOverBinCap: number;
   skippedErrors: number;
   discordErrors: string[];
   /** Dedupe table missing — alerts sent without insert (possible repeats on reruns). */
@@ -200,10 +204,10 @@ export async function processBinDealAlertForRow(
 
   const startingBid = Math.floor(row.starting_bid);
   if (
-    tag === HYPERION_ITEM_ID &&
-    startingBid > hyperionAlertMaxStartingBidCoins()
+    isNecronsBladeItemId(tag) &&
+    startingBid > necronsBladeAlertMaxStartingBidCoins()
   ) {
-    stats.skippedHyperionListingOverBinCap++;
+    stats.skippedNecronBladeListingOverBinCap++;
     return;
   }
 
@@ -311,7 +315,7 @@ export async function processBinDealAlerts(
     alertsSent: 0,
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
-    skippedHyperionListingOverBinCap: 0,
+    skippedNecronBladeListingOverBinCap: 0,
     skippedErrors: 0,
     discordErrors: [],
   };
