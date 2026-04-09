@@ -183,6 +183,66 @@ export type BinDealAlertStats = {
 /** Mutable dedupe flag shared across rows in one scan (missing table → skip insert). */
 export type BinDealDedupeState = { dedupeSkipped: boolean };
 
+export type DealCraftForRowResult =
+  | {
+      ok: true;
+      craft: number;
+      itemName: string;
+      tag: string;
+      craftPricingLabel: string;
+    }
+  | { ok: false; error: string };
+
+/**
+ * Same craft math as deal alerts (Terminator base vs item_bytes breakdown).
+ * Does not apply margin / Necron BIN cap / dedupe.
+ */
+export async function computeDealAlertCraftForRow(
+  row: BinDealRowInput
+): Promise<DealCraftForRowResult> {
+  const tag = row.item_id?.trim().toUpperCase() ?? "";
+  if (!tag) return { ok: false, error: "missing_item_id" };
+  if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) {
+    return { ok: false, error: "missing_item_bytes" };
+  }
+
+  if (tag === TERMINATOR_ITEM_ID) {
+    try {
+      const craft = await getTerminatorBaseCraftCost();
+      return {
+        ok: true,
+        craft,
+        itemName: "Terminator",
+        tag,
+        craftPricingLabel:
+          "Terminator base craft estimate (materials + Judgement Core), no listing add-ons",
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { ok: false, error: msg };
+    }
+  }
+
+  const breakdown = await computeAuctionBreakdownFromItemBytes(
+    row.auction_id,
+    row.item_bytes,
+    { bazaarPriceMode: DEAL_ALERT_BAZAAR_MODE }
+  );
+  if (breakdown.error || breakdown.total <= 0) {
+    return {
+      ok: false,
+      error: breakdown.error ?? "invalid_craft_total",
+    };
+  }
+  return {
+    ok: true,
+    craft: breakdown.total,
+    itemName: breakdown.auction.itemName,
+    tag: breakdown.auction.tag,
+    craftPricingLabel: "Instant sell (sell_summary) — bazaar craft lines",
+  };
+}
+
 /**
  * One BIN row: decode already done — craft + Discord as soon as allowlist matches.
  * Used by streaming scan (first pages) so pings are not delayed by the rest of the AH.
@@ -213,38 +273,19 @@ export async function processBinDealAlertForRow(
 
   stats.candidates++;
   const webhookUrl = cfg.webhookUrl!;
-  let craft = 0;
-  let itemName = tag;
-  let craftPricingLabel = "Instant sell (sell_summary) — bazaar craft lines";
 
-  if (tag === TERMINATOR_ITEM_ID) {
-    try {
-      craft = await getTerminatorBaseCraftCost();
-      itemName = "Terminator";
-      craftPricingLabel =
-        "Terminator base craft estimate (materials + Judgement Core), no listing add-ons";
-      stats.craftChecks++;
-    } catch (e) {
-      stats.skippedErrors++;
-      const msg = e instanceof Error ? e.message : String(e);
-      stats.discordErrors.push(`Terminator craft estimate failed: ${msg}`);
-      return;
+  const craftResult = await computeDealAlertCraftForRow(row);
+  if (!craftResult.ok) {
+    stats.skippedErrors++;
+    if (tag === TERMINATOR_ITEM_ID) {
+      stats.discordErrors.push(
+        `Terminator craft estimate failed: ${craftResult.error}`
+      );
     }
-  } else {
-    const breakdown = await computeAuctionBreakdownFromItemBytes(
-      row.auction_id,
-      row.item_bytes,
-      { bazaarPriceMode: DEAL_ALERT_BAZAAR_MODE }
-    );
-    stats.craftChecks++;
-
-    if (breakdown.error || breakdown.total <= 0) {
-      stats.skippedErrors++;
-      return;
-    }
-    craft = breakdown.total;
-    itemName = breakdown.auction.itemName;
+    return;
   }
+  stats.craftChecks++;
+  const { craft, itemName, craftPricingLabel } = craftResult;
 
   const margin = craft - startingBid;
   const minNeed = cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins;
@@ -331,7 +372,7 @@ export async function processBinDealAlerts(
 }
 
 /** Elapsed time since Hypixel auction `start` (when the listing went up). */
-function formatListedDuration(
+export function formatListedDuration(
   auctionStartMs: number | undefined,
   nowMs = Date.now()
 ): string {
@@ -389,6 +430,93 @@ async function postBinDealDiscordEmbed(
             title: `BIN under craft: ${p.itemName}`,
             url: p.coflUrl,
             color: 0x22c55e,
+            fields: [
+              { name: "Tag", value: p.tag, inline: true },
+              {
+                name: "Craft pricing",
+                value: p.craftPricingLabel,
+                inline: false,
+              },
+              {
+                name: "BIN",
+                value: fmt(p.startingBid),
+                inline: true,
+              },
+              {
+                name: "Listed (since start)",
+                value: p.listedForLabel,
+                inline: true,
+              },
+              {
+                name: "Craft (est.)",
+                value: fmt(p.craftCost),
+                inline: true,
+              },
+              {
+                name: "Margin (craft − BIN)",
+                value: fmt(p.margin),
+                inline: false,
+              },
+              {
+                name: "Auction UUID",
+                value: `\`${p.auctionId}\``,
+                inline: false,
+              },
+            ],
+            timestamp: new Date().toISOString(),
+          },
+        ],
+      }),
+    });
+
+    if (!res.ok) {
+      const t = await res.text().catch(() => "");
+      return { ok: false, error: `Discord HTTP ${res.status} ${t.slice(0, 200)}` };
+    }
+    return { ok: true };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: msg };
+  }
+}
+
+/** Hourly test ping — same numbers as real alerts, embed marked TEST (amber). */
+export async function postBinDealTestPingEmbed(
+  webhookUrl: string,
+  p: {
+    itemName: string;
+    tag: string;
+    auctionId: string;
+    startingBid: number;
+    craftCost: number;
+    margin: number;
+    coflUrl: string;
+    craftPricingLabel: string;
+    listedForLabel: string;
+  }
+): Promise<{ ok: boolean; error?: string }> {
+  const fmt = (n: number) =>
+    `${n.toLocaleString("en-US")} coins`;
+
+  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
+  const mention =
+    mentionRaw && /^\d{17,19}$/.test(mentionRaw)
+      ? `<@${mentionRaw}>`
+      : undefined;
+
+  try {
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...(mention ? { content: mention } : {}),
+        embeds: [
+          {
+            title: `🧪 TEST: craft check — ${p.itemName}`,
+            url: p.coflUrl,
+            color: 0xf59e0b,
+            description:
+              "Scheduled test ping. Margin can be negative; this is **not** a deal alert.",
             fields: [
               { name: "Tag", value: p.tag, inline: true },
               {
