@@ -73,7 +73,9 @@ if (!Array.isArray(jobs) || jobs.length === 0) {
   process.exit(1);
 }
 
-const secret = process.env.CRON_SECRET;
+const secret = (
+  process.env.CRON_SECRET ?? process.env.BIN_DEAL_TEST_PING_SECRET
+)?.trim();
 
 function headers() {
   const h = { Accept: "application/json" };
