@@ -13,7 +13,8 @@
     "lint": "eslint",
     "track:local": "node scripts/track-local.mjs",
     "track:bin": "node scripts/track-bin-local.mjs",
-    "scanner-worker": "node scripts/scanner-worker.mjs"
+    "scanner-worker": "node scripts/scanner-worker.mjs",
+    "deploy:scanner-worker": "npx @railway/cli@latest up --ci"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.3",
