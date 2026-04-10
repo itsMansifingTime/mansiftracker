@@ -34,11 +34,12 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
 
-      - name: Verify Vercel token (fails fast if VERCEL_TOKEN is wrong or expired)
-        run: vercel whoami --token="${{ secrets.VERCEL_TOKEN }}"
+      # Team projects: pass --scope (same as orgId in .vercel/project.json, e.g. team_…).
+      - name: Verify Vercel token
+        run: vercel whoami --token="${{ secrets.VERCEL_TOKEN }}" --scope="${{ secrets.VERCEL_ORG_ID }}"
 
       - name: Deploy to Vercel (remote build)
-        run: vercel deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
+        run: vercel deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}" --scope="${{ secrets.VERCEL_ORG_ID }}"
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
