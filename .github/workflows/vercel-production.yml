@@ -11,12 +11,13 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # v5 uses Node 24 runtime (avoids Node 20 deprecation on checkout@v4)
+      # v5 uses Node 24 runtime (avoids Node 20 deprecation on older checkout majors)
       - uses: actions/checkout@v5
 
       - name: Write .vercel/project.json (repo is gitignored; CLI needs link in CI)
@@ -32,6 +33,9 @@ jobs:
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
+
+      - name: Verify Vercel token (fails fast if VERCEL_TOKEN is wrong or expired)
+        run: vercel whoami --token="${{ secrets.VERCEL_TOKEN }}"
 
       - name: Deploy to Vercel (remote build)
         run: vercel deploy --prod --yes --token="${{ secrets.VERCEL_TOKEN }}"
