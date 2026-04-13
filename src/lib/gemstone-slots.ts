@@ -1,5 +1,6 @@
 import type { BazaarProduct } from "./bazaar";
 import { getProduct } from "./bazaar";
+import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
 
 /**
  * Gemstone slots (Hypixel SkyBlock).
@@ -17,6 +18,9 @@ import { getProduct } from "./bazaar";
  * In this repo, structured unlock data lives here only:
  * - Necron’s Blade line (`HYPERION`, `VALKYRIE`, `ASTRAEA`, `SCYLLA`) →
  *   {@link HYPERION_SLOT_UNLOCK_RECIPES}
+ * - Kuudra-family armor (Crimson / Aurora / Fervor / Terror / Hollow, all tiers) →
+ *   same two Geo steps as Necron blades (✎ Sapphire + ⚔ Combat); see
+ *   {@link getGemSlotUnlockRecipesForItem}.
  * - Any other item → add an entry to {@link GEM_SLOT_UNLOCK_RECIPES_BY_ITEM_ID}
  *   (key = normalized `ExtraAttributes.id`, e.g. `SHADOW_ASSASSIN_HELMET`), using
  *   in-game / wiki values.
@@ -153,8 +157,9 @@ export const gemSlotUnlockCost = hyperionSlotUnlockCost;
 
 /**
  * Geo slot-unlock steps for breakdown pricing. Returns Necron-blade recipes when
- * `id` is one of `HYPERION` / `VALKYRIE` / `ASTRAEA` / `SCYLLA`, otherwise looks up
- * {@link GEM_SLOT_UNLOCK_RECIPES_BY_ITEM_ID}.
+ * `id` is one of `HYPERION` / `VALKYRIE` / `ASTRAEA` / `SCYLLA`; Kuudra armor tags
+ * (e.g. `CRIMSON_CHESTPLATE`, `INFERNAL_AURORA_HELMET`) use the same ✎/⚔ steps;
+ * otherwise looks up {@link GEM_SLOT_UNLOCK_RECIPES_BY_ITEM_ID}.
  */
 export function getGemSlotUnlockRecipesForItem(
   normalizedItemId: string
@@ -165,6 +170,9 @@ export function getGemSlotUnlockRecipesForItem(
   }
   const custom = GEM_SLOT_UNLOCK_RECIPES_BY_ITEM_ID[normalizedItemId];
   if (custom && custom.length > 0) return custom;
+  if (parseKuudraArmorTag(normalizedItemId)) {
+    return HYPERION_SLOT_UNLOCK_RECIPES;
+  }
   return null;
 }
 
