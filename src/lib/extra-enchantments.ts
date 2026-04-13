@@ -1,4 +1,5 @@
 import type { CoflAuctionEnchant } from "./coflnet";
+import { enchantTypeToPrefix } from "./enchant-pricing";
 
 /**
  * Hypixel may store level as number, string, bigint, or `{ lvl, level }` (NBT simplify).
@@ -99,4 +100,18 @@ export function parseEnchantmentsFromExtraAttributes(
     out.push({ type, level });
   }
   return out;
+}
+
+/**
+ * True when ExtraAttributes include Fatal Tempo (bow) or Ultimate Fatal Tempo.
+ * Used by BIN deal alerts to skip Terminator listings where the baseline craft does not apply.
+ */
+export function extraAttributesHasFatalTempo(extra: Record<string, unknown>): boolean {
+  for (const e of parseEnchantmentsFromExtraAttributes(extra)) {
+    const prefix = enchantTypeToPrefix(e.type);
+    if (prefix === "ULTIMATE_FATAL_TEMPO" || prefix === "FATAL_TEMPO") {
+      return true;
+    }
+  }
+  return false;
 }

@@ -4,7 +4,10 @@ import {
   buildDealAlertPauseEmbedLinkLine,
 } from "./bin-deal-pause";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
+import { decodeSkyblockItemBytes } from "./decode-item-bytes";
+import { extraAttributesHasFatalTempo } from "./extra-enchantments";
 import { isNecronsBladeItemId } from "./gemstone-slots";
+import { getExtraAttributesFromFullNbt } from "./item-bytes-modifiers";
 import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
 import { computeTerminatorCraftCost } from "./terminator-calculator";
 import {
@@ -32,6 +35,31 @@ export type BinDealScannerEnvConfig = {
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 const TERMINATOR_ITEM_ID = "TERMINATOR";
+
+type TerminatorDealAlertGate = "ok" | "fatal_tempo" | "no_nbt";
+
+async function terminatorDealAlertGate(
+  row: Pick<BinDealRowInput, "item_id" | "item_bytes">
+): Promise<TerminatorDealAlertGate> {
+  const tag = row.item_id?.trim().toUpperCase() ?? "";
+  if (tag !== TERMINATOR_ITEM_ID) return "ok";
+  if (!row.item_bytes?.trim()) return "no_nbt";
+  const decoded = await decodeSkyblockItemBytes(row.item_bytes);
+  const extra = getExtraAttributesFromFullNbt(decoded.fullNbt);
+  if (!extra) return "no_nbt";
+  if (extraAttributesHasFatalTempo(extra)) return "fatal_tempo";
+  return "ok";
+}
+
+/**
+ * Terminator deal pings require decoded NBT and **no** Fatal Tempo / Ultimate Fatal Tempo.
+ * (Base craft margin does not apply to those listings.)
+ */
+export async function terminatorRowPassesDealAlertItemGate(
+  row: Pick<BinDealRowInput, "item_id" | "item_bytes">
+): Promise<boolean> {
+  return (await terminatorDealAlertGate(row)) === "ok";
+}
 /** Necron’s Blade line (HYPERION / VALKYRIE / SCYLLA / ASTRAEA): no ping if listing BIN is above this. */
 const DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID = 2_000_000_000;
 const TERMINATOR_CACHE_TTL_MS = 60_000;
@@ -221,6 +249,14 @@ export type BinDealAlertStats = {
   skippedBelowMargin: number;
   /** Necron’s Blade line: starting bid above cap (default 2B). */
   skippedNecronBladeListingOverBinCap: number;
+  /**
+   * Terminator BIN skipped: NBT shows Fatal Tempo / Ultimate Fatal Tempo (not compared to base craft).
+   */
+  skippedTerminatorFatalTempo: number;
+  /**
+   * Terminator BIN skipped: missing `item_bytes` or unreadable ExtraAttributes (cannot verify no Fatal Tempo).
+   */
+  skippedTerminatorNoNbt: number;
   /** Allowlisted BIN rows skipped because deal alerts are paused (link from Discord). */
   skippedDealAlertsPaused: number;
   skippedErrors: number;
@@ -320,6 +356,18 @@ export async function processBinDealAlertForRow(
     return;
   }
 
+  if (tag === TERMINATOR_ITEM_ID) {
+    const gate = await terminatorDealAlertGate(row);
+    if (gate === "fatal_tempo") {
+      stats.skippedTerminatorFatalTempo++;
+      return;
+    }
+    if (gate === "no_nbt") {
+      stats.skippedTerminatorNoNbt++;
+      return;
+    }
+  }
+
   stats.candidates++;
   const webhookUrl = cfg.webhookUrl!;
 
@@ -411,6 +459,8 @@ export async function processBinDealAlerts(
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
     skippedNecronBladeListingOverBinCap: 0,
+    skippedTerminatorFatalTempo: 0,
+    skippedTerminatorNoNbt: 0,
     skippedDealAlertsPaused: 0,
     skippedErrors: 0,
     discordErrors: [],

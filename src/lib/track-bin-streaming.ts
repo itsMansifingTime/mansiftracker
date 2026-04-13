@@ -149,6 +149,8 @@ export async function runStreamingDealScan(
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
     skippedNecronBladeListingOverBinCap: 0,
+    skippedTerminatorFatalTempo: 0,
+    skippedTerminatorNoNbt: 0,
     skippedDealAlertsPaused: 0,
     skippedErrors: 0,
     discordErrors: [],

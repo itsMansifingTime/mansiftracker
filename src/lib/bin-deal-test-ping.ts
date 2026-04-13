@@ -4,6 +4,7 @@ import {
   isBinDealAlertTag,
   parseBinDealScannerEnv,
   postBinDealTestPingEmbed,
+  terminatorRowPassesDealAlertItemGate,
   type BinDealRowInput,
 } from "./bin-deal-scanner";
 import {
@@ -107,6 +108,12 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       const tag = row.item_id?.trim().toUpperCase();
       if (!tag || !isBinDealAlertTag(cfg, tag)) continue;
       if (Math.floor(row.starting_bid) < minStartingBidCoins) continue;
+      if (
+        tag === "TERMINATOR" &&
+        !(await terminatorRowPassesDealAlertItemGate(row))
+      ) {
+        continue;
+      }
       pool.push({
         auction_id: row.auction_id,
         item_bytes: row.item_bytes,
