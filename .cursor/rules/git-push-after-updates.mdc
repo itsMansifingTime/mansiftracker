@@ -1,0 +1,14 @@
+---
+description: After code changes, commit and push to GitHub (origin/main) unless user opts out
+alwaysApply: true
+---
+
+# Git: push after updates
+
+When you **finish** a change set that edits project files (not only ephemeral chat):
+
+1. Run `git status` and, if there are meaningful changes, **`git add`**, **`git commit`** with a clear message, and **`git push origin main`** (or the current branch’s upstream).
+2. **Do not** push if the user explicitly asked to leave work uncommitted, or if `git status` shows only unrelated local edits you did not make.
+3. If push fails (auth, network), report the error and what was committed locally.
+
+This repo expects updates to land on GitHub after agent-driven edits unless the user says otherwise.

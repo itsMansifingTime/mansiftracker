@@ -1,19 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { authorizedBinDealPauseReadSecret } from "@/lib/bin-deal-pause";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET `?secret=` — returns `{ paused: boolean }` for workers using `skipSupabase`
- * (same secret as CRON / test ping).
+ * (any secret that can sign pause links: CRON, test ping, or Discord webhook token).
  */
 export async function GET(req: Request) {
   const secret = new URL(req.url).searchParams.get("secret");
-  const expected =
-    process.env.CRON_SECRET?.trim() ??
-    process.env.BIN_DEAL_TEST_PING_SECRET?.trim();
-  if (!expected || secret !== expected) {
+  if (!authorizedBinDealPauseReadSecret(secret)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

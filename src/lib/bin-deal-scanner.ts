@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildDealAlertControlComponents } from "./bin-deal-pause";
+import {
+  buildDealAlertControlComponents,
+  buildDealAlertPauseEmbedLinkLine,
+} from "./bin-deal-pause";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
 import { isNecronsBladeItemId } from "./gemstone-slots";
 import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
@@ -472,6 +475,8 @@ async function postBinDealDiscordEmbed(
       : undefined;
 
   const components = buildDealAlertControlComponents();
+  const pauseEmbedLine =
+    !components ? buildDealAlertPauseEmbedLinkLine() : null;
 
   try {
     const res = await fetch(webhookUrl, {
@@ -517,6 +522,15 @@ async function postBinDealDiscordEmbed(
                 value: `\`${p.auctionId}\``,
                 inline: false,
               },
+              ...(pauseEmbedLine
+                ? [
+                    {
+                      name: "Pause / resume",
+                      value: pauseEmbedLine,
+                      inline: false,
+                    },
+                  ]
+                : []),
             ],
             timestamp: new Date().toISOString(),
           },
