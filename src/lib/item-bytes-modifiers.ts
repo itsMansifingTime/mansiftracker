@@ -5,6 +5,7 @@ import {
   getGemSlotUnlockRecipesForExtraAndTag,
   hyperionSlotUnlockCost,
 } from "./gemstone-slots";
+import { resolveReforgeStoneProduct } from "./reforge-stone-by-modifier";
 
 export type ModifierCostLine = { label: string; cost: number };
 
@@ -280,6 +281,7 @@ export function resolveWetBookCount(extra: Record<string, unknown>): number {
 
 /**
  * Bazaar-priced modifiers from ExtraAttributes: recomb, potato books, wood singularity,
+ * reforge stone (when `modifier` maps to a bazaar Reforge Stone),
  * Geo gem slot unlocks when `gemstone-slots` has recipes for this item id, applied gems,
  * Rod line / hook / sinker are returned separately for their own breakdown section (**lowest
  * active BIN** via Cofl when available, else bazaar instant buy).
@@ -334,6 +336,22 @@ export async function buildModifierCostLines(
   if (extra.wood_singularity === true || Number(extra.wood_singularity_count) > 0) {
     const u = instantSell(getProduct(products, "WOOD_SINGULARITY"));
     lines.push({ label: "Wood Singularity", cost: Math.round(u) });
+  }
+
+  const modifierRaw = extra.modifier ?? extra.Modifier;
+  if (typeof modifierRaw === "string" && modifierRaw.trim()) {
+    const resolved = resolveReforgeStoneProduct(modifierRaw, products);
+    if (resolved) {
+      const u = instantSell(getProduct(products, resolved.productId));
+      const m = modifierRaw.trim();
+      lines.push({
+        label:
+          resolved.source === "explicit"
+            ? `Reforge stone — ${resolved.productId} (${m})`
+            : `Reforge stone — ${resolved.productId} (${m}, suffix match)`,
+        cost: Math.round(u),
+      });
+    }
   }
 
   appendGemSlotUnlockLines(
