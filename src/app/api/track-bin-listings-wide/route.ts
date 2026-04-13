@@ -43,7 +43,7 @@ export async function GET(req: Request) {
     return NextResponse.json(
       {
         error:
-          "Wide scan needs BIN_DEAL_WIDE_ITEM_IDS and a webhook (BIN_DEAL_WIDE_WEBHOOK_URL or BIN_DEAL_ALERT_WEBHOOK_URL).",
+          "Wide scan needs BIN_DEAL_WIDE_ITEM_IDS (or BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS) and a webhook (BIN_DEAL_WIDE_WEBHOOK_URL or BIN_DEAL_ALERT_WEBHOOK_URL).",
       },
       { status: 400 }
     );

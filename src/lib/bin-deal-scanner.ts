@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
 import { isNecronsBladeItemId } from "./gemstone-slots";
+import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
 import { computeTerminatorCraftCost } from "./terminator-calculator";
 import {
   DEFAULT_TERMINATOR_CRAFT_OPTIONS,
@@ -12,12 +13,17 @@ const DEAL_ALERT_BAZAAR_MODE = "instant_sell" as const;
 
 export type BinDealScannerEnvConfig = {
   webhookUrl: string | null;
-  /** Uppercase SkyBlock item ids (e.g. HYPERION,VALKYRIE,SCYLLA,ASTRAEA). Empty = deal alerts disabled. */
+  /** Uppercase SkyBlock item ids (e.g. HYPERION,VALKYRIE,SCYLLA,ASTRAEA). Can be empty if Kuudra margin is set. */
   itemIds: Set<string>;
   /** Default minimum margin (craft − BIN) for items without a per-tag override. */
   minMarginCoins: number;
   /** Optional per-item minimum margins; overrides `minMarginCoins` for that SkyBlock id. */
   itemMarginByTag: Map<string, number>;
+  /**
+   * When positive, also alert on Kuudra armor tags (`parseKuudraArmorTag`) using this minimum margin only.
+   * Set e.g. `BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS=15000000` for 15M under craft.
+   */
+  kuudraArmorMinMarginCoins: number;
 };
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
@@ -98,6 +104,13 @@ function parseItemMarginByTag(raw: string | undefined): Map<string, number> {
   return m;
 }
 
+function parseKuudraArmorMinMarginCoins(): number {
+  const raw = process.env.BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS?.trim();
+  if (!raw || raw === "0") return 0;
+  const n = Number.parseInt(raw.replace(/_/g, ""), 10);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
   const webhookUrl = process.env.BIN_DEAL_ALERT_WEBHOOK_URL?.trim() || null;
   const rawIds = process.env.BIN_DEAL_ITEM_IDS?.trim();
@@ -117,12 +130,35 @@ export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
   const itemMarginByTag = parseItemMarginByTag(
     process.env.BIN_DEAL_ITEM_MARGINS?.trim()
   );
+  const kuudraArmorMinMarginCoins = parseKuudraArmorMinMarginCoins();
 
-  return { webhookUrl, itemIds, minMarginCoins, itemMarginByTag };
+  return {
+    webhookUrl,
+    itemIds,
+    minMarginCoins,
+    itemMarginByTag,
+    kuudraArmorMinMarginCoins,
+  };
+}
+
+/** True if this SkyBlock tag is covered by `BIN_DEAL_ITEM_IDS` or Kuudra armor env. */
+export function isBinDealAlertTag(
+  cfg: BinDealScannerEnvConfig,
+  tag: string
+): boolean {
+  const t = tag.trim().toUpperCase();
+  if (!t) return false;
+  if (cfg.itemIds.has(t)) return true;
+  return (
+    cfg.kuudraArmorMinMarginCoins > 0 && parseKuudraArmorTag(t) !== null
+  );
 }
 
 export function binDealAlertsEnabled(cfg: BinDealScannerEnvConfig): boolean {
-  return Boolean(cfg.webhookUrl && cfg.itemIds.size > 0);
+  return Boolean(
+    cfg.webhookUrl &&
+      (cfg.itemIds.size > 0 || cfg.kuudraArmorMinMarginCoins > 0)
+  );
 }
 
 /**
@@ -154,7 +190,14 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
   const itemMarginByTag = parseItemMarginByTag(
     process.env.BIN_DEAL_ITEM_MARGINS?.trim()
   );
-  return { webhookUrl, itemIds, minMarginCoins, itemMarginByTag };
+  const kuudraArmorMinMarginCoins = parseKuudraArmorMinMarginCoins();
+  return {
+    webhookUrl,
+    itemIds,
+    minMarginCoins,
+    itemMarginByTag,
+    kuudraArmorMinMarginCoins,
+  };
 }
 
 export type BinDealRowInput = {
@@ -259,7 +302,7 @@ export async function processBinDealAlertForRow(
   if (!binDealAlertsEnabled(cfg)) return;
 
   const tag = row.item_id?.trim().toUpperCase();
-  if (!tag || !cfg.itemIds.has(tag)) return;
+  if (!tag || !isBinDealAlertTag(cfg, tag)) return;
   if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) return;
 
   const startingBid = Math.floor(row.starting_bid);
@@ -288,7 +331,12 @@ export async function processBinDealAlertForRow(
   const { craft, itemName, craftPricingLabel } = craftResult;
 
   const margin = craft - startingBid;
-  const minNeed = cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins;
+  const isKuudraDeal =
+    cfg.kuudraArmorMinMarginCoins > 0 &&
+    parseKuudraArmorTag(tag) !== null;
+  const minNeed = isKuudraDeal
+    ? cfg.kuudraArmorMinMarginCoins
+    : (cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins);
   if (margin < minNeed) {
     stats.skippedBelowMargin++;
     return;

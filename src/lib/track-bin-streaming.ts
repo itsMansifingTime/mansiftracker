@@ -1,4 +1,5 @@
 import {
+  isBinDealAlertTag,
   processBinDealAlertForRow,
   type BinDealAlertStats,
   type BinDealScannerEnvConfig,
@@ -187,7 +188,7 @@ export async function runStreamingDealScan(
         }
       }
       const tag = row.item_id?.trim().toUpperCase();
-      if (tag && dealCfg.itemIds.has(tag)) {
+      if (tag && isBinDealAlertTag(dealCfg, tag)) {
         await processBinDealAlertForRow(
           skipSupabase ? null : supabase,
           {

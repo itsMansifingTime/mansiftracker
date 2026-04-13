@@ -1,6 +1,7 @@
 import {
   computeDealAlertCraftForRow,
   formatListedDuration,
+  isBinDealAlertTag,
   parseBinDealScannerEnv,
   postBinDealTestPingEmbed,
   type BinDealRowInput,
@@ -37,8 +38,12 @@ export type BinDealTestPingResult =
  */
 export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   const cfg = parseBinDealScannerEnv();
-  if (cfg.itemIds.size === 0) {
-    return { ok: false, error: "BIN_DEAL_ITEM_IDS is empty" };
+  if (cfg.itemIds.size === 0 && cfg.kuudraArmorMinMarginCoins === 0) {
+    return {
+      ok: false,
+      error:
+        "BIN_DEAL_ITEM_IDS is empty and Kuudra deal scan is off (set BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS to include Kuudra armor)",
+    };
   }
 
   const webhook =
@@ -85,7 +90,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       if (!a.bin) continue;
       const row = await decodeBinRow(a, firstSeenAt);
       const tag = row.item_id?.trim().toUpperCase();
-      if (!tag || !cfg.itemIds.has(tag)) continue;
+      if (!tag || !isBinDealAlertTag(cfg, tag)) continue;
       pool.push({
         auction_id: row.auction_id,
         item_bytes: row.item_bytes,
