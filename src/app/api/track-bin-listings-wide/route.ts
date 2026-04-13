@@ -4,6 +4,7 @@ import {
   binDealAlertsEnabled,
   parseWideBinDealScannerEnv,
 } from "@/lib/bin-deal-scanner";
+import { fetchDealAlertsPaused } from "@/lib/bin-deal-pause";
 import {
   HYPIXEL_AUCTIONS,
   parseSkipSupabaseSearchParam,
@@ -71,9 +72,11 @@ export async function GET(req: Request) {
   const streamPageLimit = Math.min(WIDE_SCAN_PAGES, totalPages);
 
   try {
+    const dealAlertsPaused = await fetchDealAlertsPaused(supabase);
     const stream = await runStreamingDealScan(
       supabase,
       dealCfg,
+      dealAlertsPaused,
       streamPageLimit,
       first,
       skipSupabase
@@ -89,6 +92,7 @@ export async function GET(req: Request) {
       activeAuctionsScanned: stream.activeAuctionsScanned,
       binAuctionsProcessed: stream.binAuctionsProcessed,
       dealAlertsConfigured: true,
+      dealAlertsPaused,
       dealAlerts: stream.dealAlerts,
       ...(stream.binListingsUpsertSkipped
         ? {

@@ -18,8 +18,8 @@ function authorizeTestPing(req: Request): boolean {
 }
 
 /**
- * Hourly **test** Discord ping: random allowlisted BIN from first AH pages, full craft math,
- * ignores deal margin. Lock down with `BIN_DEAL_TEST_PING_SECRET` or `CRON_SECRET`.
+ * Hourly **test** Discord ping: random allowlisted BIN (starting bid ≥ 50M by default),
+ * full craft math, ignores deal margin. Lock down with `BIN_DEAL_TEST_PING_SECRET` or `CRON_SECRET`.
  *
  * Vercel Cron (Pro): `vercel.json` schedules this route. Hobby: use Railway on an interval instead.
  */

@@ -15,6 +15,12 @@ const MANA_ENCHANTS = new Set([
 const COMBINABLE_FROM_BOOK_ONE = new Set(["TOXOPHILITE"]);
 
 /**
+ * Tier II+ bazaar books exist but are priced inconsistently; always use Chimera I × 2^(tier−1)
+ * (e.g. III = 4× Chimera I), not the direct `ENCHANTMENT_*_3` listing.
+ */
+const SKIP_DIRECT_BOOK_USE_COMBINE_FROM_TIER_ONE = new Set(["ULTIMATE_CHIMERA"]);
+
+/**
  * Tier VII with no `ENCHANTMENT_*_7` product (or empty book): book VI + this bazaar item.
  * Smite / Bane / Ender Slayer VII books usually exist — we still use this when direct price is 0.
  */
@@ -51,6 +57,7 @@ export function enchantTypeToPrefix(type: string): string {
 /**
  * Bazaar cost for one enchant tier.
  * 1. Prefer direct `ENCHANTMENT_${prefix}_${tier}` when the order book has a price (e.g. Sharpness VII, Smite VII).
+ *    Exception: {@link SKIP_DIRECT_BOOK_USE_COMBINE_FROM_TIER_ONE} (e.g. Ultimate Chimera III → 4× Chimera I).
  * 2. Scavenger VI: book V + Golden Bounty (no VI book product).
  * 3. Tier VII composed: book VI + special item when direct VII book is missing / zero (e.g. Venomous).
  * 4. Mana / ultimate / toxophilite formulas, else direct book again (may be 0).
@@ -64,7 +71,9 @@ export function getEnchantCost(
   const tier = Math.min(10, Math.max(1, Math.round(level)));
   const directKey = `ENCHANTMENT_${prefix}_${tier}`;
   const direct = priceBook(getProduct(products, directKey));
-  if (direct > 0) {
+  const skipDirectForCombinePricing =
+    tier > 1 && SKIP_DIRECT_BOOK_USE_COMBINE_FROM_TIER_ONE.has(prefix);
+  if (direct > 0 && !skipDirectForCombinePricing) {
     return direct;
   }
 

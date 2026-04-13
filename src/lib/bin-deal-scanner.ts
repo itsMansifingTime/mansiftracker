@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { buildDealAlertControlComponents } from "./bin-deal-pause";
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
 import { isNecronsBladeItemId } from "./gemstone-slots";
 import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
@@ -217,6 +218,8 @@ export type BinDealAlertStats = {
   skippedBelowMargin: number;
   /** Necron’s Blade line: starting bid above cap (default 2B). */
   skippedNecronBladeListingOverBinCap: number;
+  /** Allowlisted BIN rows skipped because deal alerts are paused (link from Discord). */
+  skippedDealAlertsPaused: number;
   skippedErrors: number;
   discordErrors: string[];
   /** Dedupe table missing — alerts sent without insert (possible repeats on reruns). */
@@ -405,6 +408,7 @@ export async function processBinDealAlerts(
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
     skippedNecronBladeListingOverBinCap: 0,
+    skippedDealAlertsPaused: 0,
     skippedErrors: 0,
     discordErrors: [],
   };
@@ -467,12 +471,15 @@ async function postBinDealDiscordEmbed(
       ? `<@${mentionRaw}>`
       : undefined;
 
+  const components = buildDealAlertControlComponents();
+
   try {
     const res = await fetch(webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...(mention ? { content: mention } : {}),
+        ...(components ? { components } : {}),
         embeds: [
           {
             title: `BIN under craft: ${p.itemName}`,

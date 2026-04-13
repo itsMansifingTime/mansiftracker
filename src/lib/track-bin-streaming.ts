@@ -125,6 +125,8 @@ export async function decodeBinRow(
 export async function runStreamingDealScan(
   supabase: SupabaseClient | null,
   dealCfg: BinDealScannerEnvConfig,
+  /** When true, skip craft + Discord for allowlisted BINs (see /api/bin-deal-alerts/pause). */
+  dealAlertsPaused: boolean,
   streamPageLimit: number,
   firstPage: ActiveAuctionsPage,
   skipSupabase: boolean
@@ -147,6 +149,7 @@ export async function runStreamingDealScan(
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
     skippedNecronBladeListingOverBinCap: 0,
+    skippedDealAlertsPaused: 0,
     skippedErrors: 0,
     discordErrors: [],
   };
@@ -189,22 +192,26 @@ export async function runStreamingDealScan(
       }
       const tag = row.item_id?.trim().toUpperCase();
       if (tag && isBinDealAlertTag(dealCfg, tag)) {
-        await processBinDealAlertForRow(
-          skipSupabase ? null : supabase,
-          {
-            auction_id: row.auction_id,
-            item_bytes: row.item_bytes,
-            starting_bid: row.starting_bid,
-            item_id: row.item_id,
-            auction_start_ms:
-              typeof a.start === "number" && Number.isFinite(a.start)
-                ? a.start
-                : undefined,
-          },
-          dealCfg,
-          dedupeState,
-          dealAlerts
-        );
+        if (dealAlertsPaused) {
+          dealAlerts.skippedDealAlertsPaused++;
+        } else {
+          await processBinDealAlertForRow(
+            skipSupabase ? null : supabase,
+            {
+              auction_id: row.auction_id,
+              item_bytes: row.item_bytes,
+              starting_bid: row.starting_bid,
+              item_id: row.item_id,
+              auction_start_ms:
+                typeof a.start === "number" && Number.isFinite(a.start)
+                  ? a.start
+                  : undefined,
+            },
+            dealCfg,
+            dedupeState,
+            dealAlerts
+          );
+        }
       }
     }
   }

@@ -229,6 +229,17 @@ create table if not exists public.bin_deal_alert_sent (
   alerted_at timestamptz not null default now()
 );
 
+-- Pause toggle for deal Discord pings (link buttons; see supabase/bin_deal_alert_pause.sql).
+create table if not exists public.bin_deal_alert_pause (
+  id text primary key default 'default',
+  paused boolean not null default false,
+  updated_at timestamptz not null default now()
+);
+
+insert into public.bin_deal_alert_pause (id, paused)
+values ('default', false)
+on conflict (id) do nothing;
+
 -- Hypixel AH snapshot (all active auctions from paginated /v2/skyblock/auctions).
 -- See supabase/hypixel_active_auctions.sql
 create table if not exists public.hypixel_active_auctions (

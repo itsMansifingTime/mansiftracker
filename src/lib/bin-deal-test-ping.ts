@@ -18,6 +18,17 @@ const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 /** Same rough window as deal streaming (first pages of AH). */
 export const TEST_PING_MAX_PAGES = 5;
 
+/** Default: only BIN listings with starting bid at least this high (overridable via env). */
+export const DEFAULT_TEST_PING_MIN_STARTING_BID_COINS = 50_000_000;
+
+function testPingMinStartingBidCoins(): number {
+  const raw = process.env.BIN_DEAL_TEST_PING_MIN_STARTING_BID_COINS?.trim();
+  if (raw === "0") return 0;
+  if (!raw) return DEFAULT_TEST_PING_MIN_STARTING_BID_COINS;
+  const n = Number.parseInt(raw.replace(/_/g, ""), 10);
+  return Number.isFinite(n) && n >= 0 ? n : DEFAULT_TEST_PING_MIN_STARTING_BID_COINS;
+}
+
 export type BinDealTestPingResult =
   | {
       ok: true;
@@ -26,6 +37,8 @@ export type BinDealTestPingResult =
       tag: string | null;
       margin: number | null;
       candidatesFound: number;
+      /** Minimum starting bid (BIN) required to enter the pool this run. */
+      minStartingBidCoins: number;
       pagesSearched: number;
       totalPagesAvailable: number;
       discordError?: string;
@@ -33,10 +46,12 @@ export type BinDealTestPingResult =
   | { ok: false; error: string };
 
 /**
- * Pick a random allowlisted BIN from the first `TEST_PING_MAX_PAGES` Hypixel AH pages,
+ * Pick a random allowlisted BIN from the first `TEST_PING_MAX_PAGES` Hypixel AH pages
+ * with starting bid ≥ `BIN_DEAL_TEST_PING_MIN_STARTING_BID_COINS` (default 50M),
  * compute craft like real deal alerts, post a labeled TEST embed (ignores margin rules).
  */
 export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
+  const minStartingBidCoins = testPingMinStartingBidCoins();
   const cfg = parseBinDealScannerEnv();
   if (cfg.itemIds.size === 0 && cfg.kuudraArmorMinMarginCoins === 0) {
     return {
@@ -91,6 +106,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       const row = await decodeBinRow(a, firstSeenAt);
       const tag = row.item_id?.trim().toUpperCase();
       if (!tag || !isBinDealAlertTag(cfg, tag)) continue;
+      if (Math.floor(row.starting_bid) < minStartingBidCoins) continue;
       pool.push({
         auction_id: row.auction_id,
         item_bytes: row.item_bytes,
@@ -114,7 +130,11 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `${mention}🧪 **TEST ping:** no allowlisted BIN in the first ${pageLimit} Hypixel AH page(s).`,
+        content: `${mention}🧪 **TEST ping:** no allowlisted BIN ${
+          minStartingBidCoins > 0
+            ? `≥ ${minStartingBidCoins.toLocaleString("en-US")} coins `
+            : ""
+        }in the first ${pageLimit} Hypixel AH page(s).`,
       }),
     });
     const emptyOk = emptyRes.ok;
@@ -128,6 +148,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       tag: null,
       margin: null,
       candidatesFound: 0,
+      minStartingBidCoins,
       pagesSearched: pageLimit,
       totalPagesAvailable: totalPages,
       discordError: emptyErr,
@@ -166,6 +187,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
     tag,
     margin,
     candidatesFound: pool.length,
+    minStartingBidCoins,
     pagesSearched: pageLimit,
     totalPagesAvailable: totalPages,
     discordError: post.ok ? undefined : post.error,
