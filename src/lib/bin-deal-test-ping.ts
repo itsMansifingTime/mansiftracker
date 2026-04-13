@@ -62,12 +62,13 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
     };
   }
 
-  const webhook =
-    process.env.BIN_DEAL_TEST_PING_WEBHOOK_URL?.trim() ||
-    process.env.BIN_DEAL_ALERT_WEBHOOK_URL?.trim() ||
-    null;
+  const webhook = process.env.BIN_DEAL_TEST_PING_WEBHOOK_URL?.trim() || null;
   if (!webhook) {
-    return { ok: false, error: "Set BIN_DEAL_TEST_PING_WEBHOOK_URL or BIN_DEAL_ALERT_WEBHOOK_URL" };
+    return {
+      ok: false,
+      error:
+        "Set BIN_DEAL_TEST_PING_WEBHOOK_URL (separate from BIN_DEAL_ALERT_WEBHOOK_URL — test pings do not use the deal alert channel).",
+    };
   }
 
   const firstRes = await fetch(`${HYPIXEL_AUCTIONS}?page=0`, {
