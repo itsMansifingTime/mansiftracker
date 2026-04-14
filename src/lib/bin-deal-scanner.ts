@@ -27,11 +27,8 @@ export type BinDealScannerEnvConfig = {
   minMarginCoins: number;
   /** Optional per-item minimum margins; overrides `minMarginCoins` for that SkyBlock id. */
   itemMarginByTag: Map<string, number>;
-  /**
-   * When positive, also alert on Kuudra armor tags (`parseKuudraArmorTag`) using this minimum margin only.
-   * Set e.g. `BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS=15000000` for 15M under craft.
-   */
-  kuudraArmorMinMarginCoins: number;
+  /** Enable Kuudra armor scanning (CRIMSON/AURORA/FERVOR/TERROR/HOLLOW tags). */
+  kuudraArmorEnabled: boolean;
 };
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
@@ -137,11 +134,23 @@ function parseItemMarginByTag(raw: string | undefined): Map<string, number> {
   return m;
 }
 
-function parseKuudraArmorMinMarginCoins(): number {
+function parseKuudraArmorEnabled(): boolean {
   const raw = process.env.BIN_DEAL_KUUDRA_ARMOR_MIN_MARGIN_COINS?.trim();
-  if (!raw || raw === "0") return 0;
+  if (!raw || raw === "0") return false;
   const n = Number.parseInt(raw.replace(/_/g, ""), 10);
-  return Number.isFinite(n) && n > 0 ? n : 0;
+  return Number.isFinite(n) && n > 0;
+}
+
+/**
+ * Kuudra armor dynamic thresholds by BIN (starting bid):
+ * <100M => 20M, 100-200M => 30M, 200-300M => 60M, 300-500M => 100M, 500M+ => 150M.
+ */
+function kuudraArmorMinMarginByStartingBid(startingBidCoins: number): number {
+  if (startingBidCoins < 100_000_000) return 20_000_000;
+  if (startingBidCoins < 200_000_000) return 30_000_000;
+  if (startingBidCoins < 300_000_000) return 60_000_000;
+  if (startingBidCoins < 500_000_000) return 100_000_000;
+  return 150_000_000;
 }
 
 export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
@@ -163,14 +172,14 @@ export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
   const itemMarginByTag = parseItemMarginByTag(
     process.env.BIN_DEAL_ITEM_MARGINS?.trim()
   );
-  const kuudraArmorMinMarginCoins = parseKuudraArmorMinMarginCoins();
+  const kuudraArmorEnabled = parseKuudraArmorEnabled();
 
   return {
     webhookUrl,
     itemIds,
     minMarginCoins,
     itemMarginByTag,
-    kuudraArmorMinMarginCoins,
+    kuudraArmorEnabled,
   };
 }
 
@@ -182,15 +191,13 @@ export function isBinDealAlertTag(
   const t = tag.trim().toUpperCase();
   if (!t) return false;
   if (cfg.itemIds.has(t)) return true;
-  return (
-    cfg.kuudraArmorMinMarginCoins > 0 && parseKuudraArmorTag(t) !== null
-  );
+  return cfg.kuudraArmorEnabled && parseKuudraArmorTag(t) !== null;
 }
 
 export function binDealAlertsEnabled(cfg: BinDealScannerEnvConfig): boolean {
   return Boolean(
     cfg.webhookUrl &&
-      (cfg.itemIds.size > 0 || cfg.kuudraArmorMinMarginCoins > 0)
+      (cfg.itemIds.size > 0 || cfg.kuudraArmorEnabled)
   );
 }
 
@@ -223,13 +230,13 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
   const itemMarginByTag = parseItemMarginByTag(
     process.env.BIN_DEAL_ITEM_MARGINS?.trim()
   );
-  const kuudraArmorMinMarginCoins = parseKuudraArmorMinMarginCoins();
+  const kuudraArmorEnabled = parseKuudraArmorEnabled();
   return {
     webhookUrl,
     itemIds,
     minMarginCoins,
     itemMarginByTag,
-    kuudraArmorMinMarginCoins,
+    kuudraArmorEnabled,
   };
 }
 
@@ -387,10 +394,10 @@ export async function processBinDealAlertForRow(
 
   const margin = craft - startingBid;
   const isKuudraDeal =
-    cfg.kuudraArmorMinMarginCoins > 0 &&
+    cfg.kuudraArmorEnabled &&
     parseKuudraArmorTag(tag) !== null;
   const minNeed = isKuudraDeal
-    ? cfg.kuudraArmorMinMarginCoins
+    ? kuudraArmorMinMarginByStartingBid(startingBid)
     : (cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins);
   if (margin < minNeed) {
     stats.skippedBelowMargin++;

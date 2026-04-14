@@ -56,7 +56,7 @@ export type BinDealTestPingResult =
 export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   const minStartingBidCoins = testPingMinStartingBidCoins();
   const cfg = parseBinDealScannerEnv();
-  if (cfg.itemIds.size === 0 && cfg.kuudraArmorMinMarginCoins === 0) {
+  if (cfg.itemIds.size === 0 && !cfg.kuudraArmorEnabled) {
     return {
       ok: false,
       error:
