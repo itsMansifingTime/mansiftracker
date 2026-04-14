@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { reserveDealAlertMention } from "./bin-deal-mention-budget";
 import {
   buildDealAlertControlComponents,
   buildDealAlertPauseEmbedLinkLine,
@@ -421,27 +422,38 @@ export async function processBinDealAlertForRow(
     }
   }
 
-  const ok = await postBinDealDiscordEmbed(webhookUrl, {
-    itemName,
-    tag,
-    auctionId: row.auction_id,
-    startingBid,
-    craftCost: craft,
-    margin,
-    coflUrl: `${COFL_AUCTION_BASE}/${encodeURIComponent(row.auction_id)}`,
-    craftPricingLabel,
-    listedForLabel: formatListedDuration(row.auction_start_ms),
-  });
+  const mention = await reserveDealAlertMention(supabase);
+  try {
+    const ok = await postBinDealDiscordEmbed(
+      webhookUrl,
+      {
+        itemName,
+        tag,
+        auctionId: row.auction_id,
+        startingBid,
+        craftCost: craft,
+        margin,
+        coflUrl: `${COFL_AUCTION_BASE}/${encodeURIComponent(row.auction_id)}`,
+        craftPricingLabel,
+        listedForLabel: formatListedDuration(row.auction_start_ms),
+      },
+      { mentionContent: mention?.content }
+    );
 
-  if (!ok.ok) {
-    stats.discordErrors.push(ok.error ?? "Discord POST failed");
-    if (supabase) {
-      await supabase
-        .from("bin_deal_alert_sent")
-        .delete()
-        .eq("auction_id", row.auction_id);
+    if (!ok.ok) {
+      await mention?.release();
+      stats.discordErrors.push(ok.error ?? "Discord POST failed");
+      if (supabase) {
+        await supabase
+          .from("bin_deal_alert_sent")
+          .delete()
+          .eq("auction_id", row.auction_id);
+      }
+      return;
     }
-    return;
+  } catch (e) {
+    await mention?.release();
+    throw e;
   }
 
   stats.alertsSent++;
@@ -513,16 +525,13 @@ async function postBinDealDiscordEmbed(
     coflUrl: string;
     craftPricingLabel: string;
     listedForLabel: string;
-  }
+  },
+  opts?: { mentionContent?: string }
 ): Promise<{ ok: boolean; error?: string }> {
   const fmt = (n: number) =>
     `${n.toLocaleString("en-US")} coins`;
 
-  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
-  const mention =
-    mentionRaw && /^\d{17,19}$/.test(mentionRaw)
-      ? `<@${mentionRaw}>`
-      : undefined;
+  const mention = opts?.mentionContent?.trim() || undefined;
 
   const components = buildDealAlertControlComponents();
   const pauseEmbedLine =
@@ -612,16 +621,13 @@ export async function postBinDealTestPingEmbed(
     coflUrl: string;
     craftPricingLabel: string;
     listedForLabel: string;
-  }
+  },
+  opts?: { mentionContent?: string }
 ): Promise<{ ok: boolean; error?: string }> {
   const fmt = (n: number) =>
     `${n.toLocaleString("en-US")} coins`;
 
-  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
-  const mention =
-    mentionRaw && /^\d{17,19}$/.test(mentionRaw)
-      ? `<@${mentionRaw}>`
-      : undefined;
+  const mention = opts?.mentionContent?.trim() || undefined;
 
   try {
     const res = await fetch(webhookUrl, {

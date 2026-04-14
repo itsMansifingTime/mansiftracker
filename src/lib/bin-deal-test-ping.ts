@@ -1,3 +1,4 @@
+import { reserveDealAlertMention } from "./bin-deal-mention-budget";
 import {
   computeDealAlertCraftForRow,
   formatListedDuration,
@@ -7,6 +8,7 @@ import {
   terminatorRowPassesDealAlertItemGate,
   type BinDealRowInput,
 } from "./bin-deal-scanner";
+import { getSupabaseAdmin } from "./supabase-admin";
 import {
   decodeBinRow,
   fetchAuctionsPage,
@@ -71,6 +73,8 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
     };
   }
 
+  const supabase = getSupabaseAdmin();
+
   const firstRes = await fetch(`${HYPIXEL_AUCTIONS}?page=0`, {
     cache: "no-store",
   });
@@ -129,16 +133,13 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   }
 
   if (pool.length === 0) {
-    const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
-    const mention =
-      mentionRaw && /^\d{17,19}$/.test(mentionRaw)
-        ? `<@${mentionRaw}> `
-        : "";
+    const mention = await reserveDealAlertMention(supabase);
+    const prefix = mention?.content ? `${mention.content} ` : "";
     const emptyRes = await fetch(webhook, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `${mention}🧪 **TEST ping:** no allowlisted BIN ${
+        content: `${prefix}🧪 **TEST ping:** no allowlisted BIN ${
           minStartingBidCoins > 0
             ? `≥ ${minStartingBidCoins.toLocaleString("en-US")} coins `
             : ""
@@ -146,6 +147,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       }),
     });
     const emptyOk = emptyRes.ok;
+    if (!emptyOk) await mention?.release();
     const emptyErr = emptyOk
       ? undefined
       : `Discord HTTP ${emptyRes.status} ${(await emptyRes.text().catch(() => "")).slice(0, 120)}`;
@@ -176,28 +178,40 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   const startingBid = Math.floor(row.starting_bid);
   const margin = craft - startingBid;
 
-  const post = await postBinDealTestPingEmbed(webhook, {
-    itemName,
-    tag,
-    auctionId: row.auction_id,
-    startingBid,
-    craftCost: craft,
-    margin,
-    coflUrl: `${COFL_AUCTION_BASE}/${encodeURIComponent(row.auction_id)}`,
-    craftPricingLabel,
-    listedForLabel: formatListedDuration(row.auction_start_ms),
-  });
+  const mention = await reserveDealAlertMention(supabase);
+  try {
+    const post = await postBinDealTestPingEmbed(
+      webhook,
+      {
+        itemName,
+        tag,
+        auctionId: row.auction_id,
+        startingBid,
+        craftCost: craft,
+        margin,
+        coflUrl: `${COFL_AUCTION_BASE}/${encodeURIComponent(row.auction_id)}`,
+        craftPricingLabel,
+        listedForLabel: formatListedDuration(row.auction_start_ms),
+      },
+      { mentionContent: mention?.content }
+    );
 
-  return {
-    ok: true,
-    discordSent: post.ok,
-    pickedAuctionId: row.auction_id,
-    tag,
-    margin,
-    candidatesFound: pool.length,
-    minStartingBidCoins,
-    pagesSearched: pageLimit,
-    totalPagesAvailable: totalPages,
-    discordError: post.ok ? undefined : post.error,
-  };
+    if (!post.ok) await mention?.release();
+
+    return {
+      ok: true,
+      discordSent: post.ok,
+      pickedAuctionId: row.auction_id,
+      tag,
+      margin,
+      candidatesFound: pool.length,
+      minStartingBidCoins,
+      pagesSearched: pageLimit,
+      totalPagesAvailable: totalPages,
+      discordError: post.ok ? undefined : post.error,
+    };
+  } catch (e) {
+    await mention?.release();
+    throw e;
+  }
 }
