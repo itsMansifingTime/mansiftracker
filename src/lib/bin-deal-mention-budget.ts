@@ -5,6 +5,10 @@ const DEFAULT_MAX_MENTION_PINGS = 10;
 
 let localMentionReserveCount = 0;
 
+function useSupabaseDealState(): boolean {
+  return process.env.BIN_DEAL_USE_SUPABASE_STATE?.trim() === "true";
+}
+
 /** Max @mention pings; `0` = unlimited. Unset defaults to {@link DEFAULT_MAX_MENTION_PINGS}. */
 export function parseDealAlertMentionMaxPings(): number {
   const raw = process.env.BIN_DEAL_ALERT_MENTION_MAX_PINGS?.trim();
@@ -44,7 +48,8 @@ export async function reserveDealAlertMention(
     };
   }
 
-  if (!supabase) {
+  const canUseSupabase = useSupabaseDealState() && Boolean(supabase);
+  if (!canUseSupabase) {
     if (localMentionReserveCount >= max) return null;
     localMentionReserveCount++;
     return {
@@ -54,8 +59,9 @@ export async function reserveDealAlertMention(
       },
     };
   }
+  const supabaseClient = supabase!;
 
-  const { data, error } = await supabase.rpc("try_reserve_deal_mention_ping", {
+  const { data, error } = await supabaseClient.rpc("try_reserve_deal_mention_ping", {
     p_max: max,
   });
 
@@ -73,7 +79,7 @@ export async function reserveDealAlertMention(
   return {
     content: `<@${userId}>`,
     release: async () => {
-      await supabase.rpc("release_deal_mention_ping");
+      await supabaseClient.rpc("release_deal_mention_ping");
     },
   };
 }

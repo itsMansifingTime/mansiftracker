@@ -3,6 +3,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const DEFAULT_MAX_WEBHOOK_PINGS = 10;
 let localWebhookReserveCount = 0;
 
+function useSupabaseDealState(): boolean {
+  return process.env.BIN_DEAL_USE_SUPABASE_STATE?.trim() === "true";
+}
+
 /** Max Discord webhook sends for deal + test pings combined; `0` = unlimited. */
 export function parseDealAlertMaxPings(): number {
   const raw = process.env.BIN_DEAL_ALERT_MAX_PINGS?.trim();
@@ -25,8 +29,9 @@ export async function reserveDealAlertWebhookPing(
 ): Promise<DealAlertWebhookReservation | null> {
   const max = parseDealAlertMaxPings();
   if (max === 0) return { release: async () => {} };
+  const canUseSupabase = useSupabaseDealState() && Boolean(supabase);
 
-  if (!supabase) {
+  if (!canUseSupabase) {
     if (localWebhookReserveCount >= max) return null;
     localWebhookReserveCount++;
     return {
@@ -35,8 +40,9 @@ export async function reserveDealAlertWebhookPing(
       },
     };
   }
+  const supabaseClient = supabase!;
 
-  const { data, error } = await supabase.rpc("try_reserve_deal_webhook_ping", {
+  const { data, error } = await supabaseClient.rpc("try_reserve_deal_webhook_ping", {
     p_max: max,
   });
 
@@ -54,7 +60,7 @@ export async function reserveDealAlertWebhookPing(
 
   return {
     release: async () => {
-      await supabase.rpc("release_deal_webhook_ping");
+      await supabaseClient.rpc("release_deal_webhook_ping");
     },
   };
 }

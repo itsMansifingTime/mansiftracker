@@ -95,6 +95,10 @@ function isSupabaseMissingTableMessage(msg: string): boolean {
   return /could not find the table|PGRST205|schema cache/i.test(msg);
 }
 
+function useSupabaseDealState(): boolean {
+  return process.env.BIN_DEAL_USE_SUPABASE_STATE?.trim() === "true";
+}
+
 async function getTerminatorBaseCraftCost(nowMs = Date.now()): Promise<number> {
   if (terminatorBaseCraftCache && terminatorBaseCraftCache.expiresAt > nowMs) {
     return terminatorBaseCraftCache.value;
@@ -438,7 +442,7 @@ export async function processBinDealAlertForRow(
   const webhookPing = await reserveDealAlertWebhookPing(supabase);
   if (!webhookPing) return;
 
-  if (supabase && !state.dedupeSkipped) {
+  if (useSupabaseDealState() && supabase && !state.dedupeSkipped) {
     const { error: insErr } = await supabase
       .from("bin_deal_alert_sent")
       .insert({ auction_id: row.auction_id });
