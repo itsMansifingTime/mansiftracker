@@ -57,7 +57,11 @@ function allPauseSigningSecrets(): string[] {
   push(process.env.CRON_SECRET);
   push(process.env.BIN_DEAL_TEST_PING_SECRET);
   push(extractDiscordWebhookToken(process.env.BIN_DEAL_ALERT_WEBHOOK_URL));
+  push(extractDiscordWebhookToken(process.env.BIN_DEAL_KUUDRA_WEBHOOK_URL));
+  push(extractDiscordWebhookToken(process.env.BIN_DEAL_HYPERION_WEBHOOK_URL));
   push(extractDiscordWebhookToken(process.env.BIN_DEAL_WIDE_WEBHOOK_URL));
+  push(extractDiscordWebhookToken(process.env.BIN_DEAL_WIDE_KUUDRA_WEBHOOK_URL));
+  push(extractDiscordWebhookToken(process.env.BIN_DEAL_WIDE_HYPERION_WEBHOOK_URL));
   return out;
 }
 

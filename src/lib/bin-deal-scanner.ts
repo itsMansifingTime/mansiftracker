@@ -22,6 +22,8 @@ const DEAL_ALERT_BAZAAR_MODE = "instant_sell" as const;
 
 export type BinDealScannerEnvConfig = {
   webhookUrl: string | null;
+  kuudraWebhookUrl: string | null;
+  hyperionWebhookUrl: string | null;
   /** Uppercase SkyBlock item ids (e.g. HYPERION,VALKYRIE,SCYLLA,ASTRAEA). Can be empty if Kuudra margin is set. */
   itemIds: Set<string>;
   /** Default minimum margin (craft − BIN) for items without a per-tag override. */
@@ -156,6 +158,10 @@ function kuudraArmorMinMarginByStartingBid(startingBidCoins: number): number {
 
 export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
   const webhookUrl = process.env.BIN_DEAL_ALERT_WEBHOOK_URL?.trim() || null;
+  const kuudraWebhookUrl =
+    process.env.BIN_DEAL_KUUDRA_WEBHOOK_URL?.trim() || null;
+  const hyperionWebhookUrl =
+    process.env.BIN_DEAL_HYPERION_WEBHOOK_URL?.trim() || null;
   const rawIds = process.env.BIN_DEAL_ITEM_IDS?.trim();
   const itemIds = new Set(
     rawIds
@@ -177,6 +183,8 @@ export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
 
   return {
     webhookUrl,
+    kuudraWebhookUrl,
+    hyperionWebhookUrl,
     itemIds,
     minMarginCoins,
     itemMarginByTag,
@@ -197,7 +205,7 @@ export function isBinDealAlertTag(
 
 export function binDealAlertsEnabled(cfg: BinDealScannerEnvConfig): boolean {
   return Boolean(
-    cfg.webhookUrl &&
+    (cfg.webhookUrl || cfg.kuudraWebhookUrl || cfg.hyperionWebhookUrl) &&
       (cfg.itemIds.size > 0 || cfg.kuudraArmorEnabled)
   );
 }
@@ -212,6 +220,14 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
     process.env.BIN_DEAL_WIDE_WEBHOOK_URL?.trim() ||
     process.env.BIN_DEAL_ALERT_WEBHOOK_URL?.trim() ||
     null;
+  const kuudraWebhookUrl =
+    process.env.BIN_DEAL_WIDE_KUUDRA_WEBHOOK_URL?.trim() ||
+    process.env.BIN_DEAL_KUUDRA_WEBHOOK_URL?.trim() ||
+    webhookUrl;
+  const hyperionWebhookUrl =
+    process.env.BIN_DEAL_WIDE_HYPERION_WEBHOOK_URL?.trim() ||
+    process.env.BIN_DEAL_HYPERION_WEBHOOK_URL?.trim() ||
+    webhookUrl;
   const rawIds = process.env.BIN_DEAL_WIDE_ITEM_IDS?.trim();
   const itemIds = new Set(
     rawIds
@@ -234,11 +250,25 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
   const kuudraArmorEnabled = parseKuudraArmorEnabled();
   return {
     webhookUrl,
+    kuudraWebhookUrl,
+    hyperionWebhookUrl,
     itemIds,
     minMarginCoins,
     itemMarginByTag,
     kuudraArmorEnabled,
   };
+}
+
+function resolveDealAlertWebhookUrl(
+  cfg: BinDealScannerEnvConfig,
+  tag: string,
+  isKuudraDeal: boolean
+): string | null {
+  if (isKuudraDeal) return cfg.kuudraWebhookUrl || cfg.webhookUrl;
+  if (isNecronsBladeItemId(tag)) {
+    return cfg.hyperionWebhookUrl || cfg.webhookUrl;
+  }
+  return cfg.webhookUrl;
 }
 
 export type BinDealRowInput = {
@@ -378,8 +408,6 @@ export async function processBinDealAlertForRow(
   }
 
   stats.candidates++;
-  const webhookUrl = cfg.webhookUrl!;
-
   const craftResult = await computeDealAlertCraftForRow(row);
   if (!craftResult.ok) {
     stats.skippedErrors++;
@@ -397,6 +425,8 @@ export async function processBinDealAlertForRow(
   const isKuudraDeal =
     cfg.kuudraArmorEnabled &&
     parseKuudraArmorTag(tag) !== null;
+  const webhookUrl = resolveDealAlertWebhookUrl(cfg, tag, isKuudraDeal);
+  if (!webhookUrl) return;
   const minNeed = isKuudraDeal
     ? kuudraArmorMinMarginByStartingBid(startingBid)
     : (cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins);
