@@ -1,4 +1,5 @@
 import { reserveDealAlertMention } from "./bin-deal-mention-budget";
+import { reserveDealAlertWebhookPing } from "./bin-deal-webhook-budget";
 import {
   computeDealAlertCraftForRow,
   formatListedDuration,
@@ -133,6 +134,20 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   }
 
   if (pool.length === 0) {
+    const webhookPing = await reserveDealAlertWebhookPing(supabase);
+    if (!webhookPing) {
+      return {
+        ok: true,
+        discordSent: false,
+        pickedAuctionId: null,
+        tag: null,
+        margin: null,
+        candidatesFound: 0,
+        minStartingBidCoins,
+        pagesSearched: pageLimit,
+        totalPagesAvailable: totalPages,
+      };
+    }
     const mention = await reserveDealAlertMention(supabase);
     const prefix = mention?.content ? `${mention.content} ` : "";
     const emptyRes = await fetch(webhook, {
@@ -147,7 +162,10 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       }),
     });
     const emptyOk = emptyRes.ok;
-    if (!emptyOk) await mention?.release();
+    if (!emptyOk) {
+      await mention?.release();
+      await webhookPing.release();
+    }
     const emptyErr = emptyOk
       ? undefined
       : `Discord HTTP ${emptyRes.status} ${(await emptyRes.text().catch(() => "")).slice(0, 120)}`;
@@ -178,6 +196,21 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   const startingBid = Math.floor(row.starting_bid);
   const margin = craft - startingBid;
 
+  const webhookPing = await reserveDealAlertWebhookPing(supabase);
+  if (!webhookPing) {
+    return {
+      ok: true,
+      discordSent: false,
+      pickedAuctionId: row.auction_id,
+      tag,
+      margin,
+      candidatesFound: pool.length,
+      minStartingBidCoins,
+      pagesSearched: pageLimit,
+      totalPagesAvailable: totalPages,
+    };
+  }
+
   const mention = await reserveDealAlertMention(supabase);
   try {
     const post = await postBinDealTestPingEmbed(
@@ -196,7 +229,10 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       { mentionContent: mention?.content }
     );
 
-    if (!post.ok) await mention?.release();
+    if (!post.ok) {
+      await mention?.release();
+      await webhookPing.release();
+    }
 
     return {
       ok: true,
@@ -212,6 +248,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
     };
   } catch (e) {
     await mention?.release();
+    await webhookPing.release();
     throw e;
   }
 }

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { reserveDealAlertMention } from "./bin-deal-mention-budget";
+import { reserveDealAlertWebhookPing } from "./bin-deal-webhook-budget";
 import {
   buildDealAlertControlComponents,
   buildDealAlertPauseEmbedLinkLine,
@@ -404,6 +405,9 @@ export async function processBinDealAlertForRow(
     return;
   }
 
+  const webhookPing = await reserveDealAlertWebhookPing(supabase);
+  if (!webhookPing) return;
+
   if (supabase && !state.dedupeSkipped) {
     const { error: insErr } = await supabase
       .from("bin_deal_alert_sent")
@@ -411,6 +415,7 @@ export async function processBinDealAlertForRow(
 
     if (insErr) {
       if (insErr.code === "23505") {
+        await webhookPing.release();
         stats.skippedAlreadyAlerted++;
         return;
       }
@@ -421,6 +426,7 @@ export async function processBinDealAlertForRow(
           "bin_deal_alert_sent missing — run supabase/bin_deal_alert_sent.sql; sending without dedupe this run."
         );
       } else {
+        await webhookPing.release();
         stats.discordErrors.push(
           `bin_deal_alert_sent ${row.auction_id}: ${insErr.message}`
         );
@@ -449,6 +455,7 @@ export async function processBinDealAlertForRow(
 
     if (!ok.ok) {
       await mention?.release();
+      await webhookPing.release();
       stats.discordErrors.push(ok.error ?? "Discord POST failed");
       if (supabase) {
         await supabase
@@ -460,6 +467,7 @@ export async function processBinDealAlertForRow(
     }
   } catch (e) {
     await mention?.release();
+    await webhookPing.release();
     throw e;
   }
 
