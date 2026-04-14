@@ -74,6 +74,21 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
     };
   }
 
+  // Test ping route stays usable for diagnostics but does not send Discord messages.
+  if (process.env.BIN_DEAL_TEST_PING_SEND_DISCORD?.trim() !== "true") {
+    return {
+      ok: true,
+      discordSent: false,
+      pickedAuctionId: null,
+      tag: null,
+      margin: null,
+      candidatesFound: 0,
+      minStartingBidCoins,
+      pagesSearched: 0,
+      totalPagesAvailable: 0,
+    };
+  }
+
   const supabase = getSupabaseAdmin();
 
   const firstRes = await fetch(`${HYPIXEL_AUCTIONS}?page=0`, {

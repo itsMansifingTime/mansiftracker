@@ -19,6 +19,9 @@ export function parseDealAlertMentionMaxPings(): number {
 }
 
 export function dealAlertMentionUserId(): string | null {
+  if (process.env.BIN_DEAL_ALERT_MENTIONS_ENABLED?.trim() !== "true") {
+    return null;
+  }
   const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
   if (mentionRaw && /^\d{17,19}$/.test(mentionRaw)) return mentionRaw;
   return null;
