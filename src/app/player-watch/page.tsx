@@ -43,7 +43,9 @@ export default function PlayerWatchPage() {
     const secret = apiSecret.trim();
     const raw = players.trim();
     if (!secret) {
-      setError("Enter your API key (same as CRON_SECRET or PLAYER_AUCTION_WATCH_SECRET on the server).");
+      setError(
+        "Enter your site password (the same string as CRON_SECRET or PLAYER_AUCTION_WATCH_SECRET on Vercel — not a Hypixel key)."
+      );
       setResult(null);
       return;
     }
@@ -88,15 +90,21 @@ export default function PlayerWatchPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Player auction watch</h1>
           <p className="mt-2 text-sm text-zinc-500">
-            Calls{" "}
+            Uses Hypixel&apos;s{" "}
+            <strong className="text-zinc-400">public</strong> auction list —{" "}
+            <strong className="text-zinc-400">no Hypixel API key</strong>. The
+            password box is only so random people can&apos;t spam your Discord:
+            it must match{" "}
+            <code className="rounded bg-zinc-800 px-1 text-xs">CRON_SECRET</code>{" "}
+            (or{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
-              GET /api/player-auctions-watch
-            </code>{" "}
-            with your secret. New listing UUIDs in the scan window post to{" "}
+              PLAYER_AUCTION_WATCH_SECRET
+            </code>
+            ) in Vercel. New listings post to{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
               PLAYER_AUCTION_WATCH_WEBHOOK_URL
-            </code>{" "}
-            on the server.
+            </code>
+            .
           </p>
           <p className="mt-2 text-xs text-zinc-600">
             Site:{" "}
@@ -123,17 +131,17 @@ export default function PlayerWatchPage() {
           </label>
 
           <label className="flex flex-col gap-1.5 text-sm">
-            <span className="text-zinc-400">API key (secret)</span>
+            <span className="text-zinc-400">Site password (same as Vercel)</span>
             <input
               type="password"
               value={apiSecret}
               onChange={(e) => setApiSecret(e.target.value)}
-              placeholder="CRON_SECRET or PLAYER_AUCTION_WATCH_SECRET"
+              placeholder="Paste CRON_SECRET from Vercel → Settings → Environment Variables"
               className="rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-zinc-100 placeholder:text-zinc-600 focus:border-sky-600 focus:outline-none focus:ring-1 focus:ring-sky-600"
               autoComplete="off"
             />
             <span className="text-xs text-zinc-600">
-              Same value as configured on Vercel. Never share it. This page only runs in your browser; the key is sent when you click Run.
+              Not from developer.hypixel.net — that is a different key and is not used here. Never share this password. It is sent only when you click Run.
             </span>
           </label>
 

@@ -21,15 +21,18 @@ function rememberAuctionOnSuccess(auctionId: string) {
   seenAuctionIds.add(auctionId);
 }
 
-function authorizePlayerWatch(req: Request): boolean {
+type PlayerWatchAuth = "ok" | "missing_server_secret" | "unauthorized";
+
+function authorizePlayerWatch(req: Request): PlayerWatchAuth {
   const expected =
     process.env.PLAYER_AUCTION_WATCH_SECRET?.trim() ||
     process.env.CRON_SECRET?.trim();
-  if (!expected) return false;
+  if (!expected) return "missing_server_secret";
   const url = new URL(req.url);
-  if (url.searchParams.get("secret") === expected) return true;
+  if (url.searchParams.get("secret") === expected) return "ok";
   const auth = req.headers.get("authorization");
-  return auth === `Bearer ${expected}`;
+  if (auth === `Bearer ${expected}`) return "ok";
+  return "unauthorized";
 }
 
 export const dynamic = "force-dynamic";
@@ -43,11 +46,21 @@ export const maxDuration = 300;
  * `GET /api/player-auctions-watch?player=Mansif&secret=…` (or `players=a,b`)
  */
 export async function GET(req: Request) {
-  if (!authorizePlayerWatch(req)) {
+  const auth = authorizePlayerWatch(req);
+  if (auth === "missing_server_secret") {
     return NextResponse.json(
       {
         error:
-          "Unauthorized. Set PLAYER_AUCTION_WATCH_SECRET or CRON_SECRET, then ?secret=… or Authorization: Bearer …",
+          "Server is missing CRON_SECRET or PLAYER_AUCTION_WATCH_SECRET in Vercel env. This is your app password — not a Hypixel API key. Add one and redeploy.",
+      },
+      { status: 503 }
+    );
+  }
+  if (auth === "unauthorized") {
+    return NextResponse.json(
+      {
+        error:
+          "Wrong site password. Use the same value as CRON_SECRET or PLAYER_AUCTION_WATCH_SECRET from Vercel (not developer.hypixel.net).",
       },
       { status: 401 }
     );
