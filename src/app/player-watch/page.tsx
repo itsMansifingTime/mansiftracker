@@ -1,19 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Nav } from "@/components/Nav";
 import { PUBLIC_SITE_URL } from "@/lib/site-url";
 
 const SESSION_KEY_PLAYER = "playerWatchNames";
 const SESSION_KEY_SECRET = "playerWatchSecret";
 
+const AUTO_SCAN_INTERVAL_MS = 30_000;
+
 export default function PlayerWatchPage() {
   const [players, setPlayers] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [maxPages, setMaxPages] = useState(10);
   const [running, setRunning] = useState(false);
+  const [autoRun, setAutoRun] = useState(false);
   const [result, setResult] = useState<unknown>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const runningRef = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadFromSession = useCallback(() => {
     try {
@@ -40,6 +46,8 @@ export default function PlayerWatchPage() {
   }, [loadFromSession]);
 
   const runWatch = useCallback(async () => {
+    if (runningRef.current) return;
+
     const secret = apiSecret.trim();
     const raw = players.trim();
     if (!secret) {
@@ -55,9 +63,9 @@ export default function PlayerWatchPage() {
       return;
     }
 
+    runningRef.current = true;
     setRunning(true);
     setError(null);
-    setResult(null);
     try {
       const q = new URLSearchParams();
       q.set("players", raw);
@@ -79,9 +87,32 @@ export default function PlayerWatchPage() {
       setError(e instanceof Error ? e.message : String(e));
       setResult(null);
     } finally {
+      runningRef.current = false;
       setRunning(false);
     }
   }, [apiSecret, players, maxPages]);
+
+  useEffect(() => {
+    if (!autoRun) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
+    }
+
+    void runWatch();
+    intervalRef.current = setInterval(() => {
+      void runWatch();
+    }, AUTO_SCAN_INTERVAL_MS);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [autoRun, runWatch]);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-100">
@@ -141,7 +172,20 @@ export default function PlayerWatchPage() {
               autoComplete="off"
             />
             <span className="text-xs text-zinc-600">
-              Not from developer.hypixel.net — that is a different key and is not used here. Never share this password. It is sent only when you click Run.
+              Not from developer.hypixel.net — that is a different key and is not used here. Never share this password. It is sent on each scan (manual or every 30s when auto is on).
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer items-center gap-3 text-sm text-zinc-300">
+            <input
+              type="checkbox"
+              checked={autoRun}
+              onChange={(e) => setAutoRun(e.target.checked)}
+              className="size-4 rounded border-zinc-600 bg-zinc-950 text-sky-600 focus:ring-sky-600"
+            />
+            <span>
+              Run scan every <strong className="text-zinc-200">30 seconds</strong>{" "}
+              while this tab is open (starts immediately when turned on)
             </span>
           </label>
 
@@ -166,7 +210,7 @@ export default function PlayerWatchPage() {
               onClick={() => void runWatch()}
               className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-500 disabled:opacity-50"
             >
-              {running ? "Running…" : "Run scan"}
+              {running ? "Running…" : autoRun ? "Run now (also on timer)" : "Run scan"}
             </button>
             <button
               type="button"
