@@ -11,6 +11,7 @@ const links = [
   { href: "/browse", label: "Browse" },
   { href: "/hyperion-bin-verify", label: "Hyp verify" },
   { href: "/bin-sniper", label: "BIN SNIPER" },
+  { href: "/player-watch", label: "Player watch" },
   { href: "/wide-bin-scan", label: "Wide scan" },
   { href: "/ah-snapshot", label: "AH snapshot" },
   { href: "/bazaar-snapshot", label: "Bazaar" },
