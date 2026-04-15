@@ -61,8 +61,11 @@ export async function terminatorRowPassesDealAlertItemGate(
 ): Promise<boolean> {
   return (await terminatorDealAlertGate(row)) === "ok";
 }
-/** Necron’s Blade line (HYPERION / VALKYRIE / SCYLLA / ASTRAEA): no ping if listing BIN is above this. */
-const DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID = 2_000_000_000;
+/** Necron’s Blade line: above this starting bid, embed is still sent but @mention is suppressed. */
+const DEFAULT_NECRON_BLADE_ALERT_MAX_STARTING_BID = 1_700_000_000;
+
+/** Default min margin (craft − BIN) for Necron’s Blade line when `BIN_DEAL_ITEM_MARGINS` has no entry for that tag. */
+const DEFAULT_NECRON_BLADE_DEAL_MIN_MARGIN_COINS = 10_000_000;
 const TERMINATOR_CACHE_TTL_MS = 60_000;
 
 function necronsBladeAlertMaxStartingBidCoins(): number {
@@ -275,6 +278,24 @@ function resolveDealAlertWebhookUrl(
   return cfg.webhookUrl;
 }
 
+function minMarginCoinsForDealAlert(
+  cfg: BinDealScannerEnvConfig,
+  tag: string,
+  isKuudraDeal: boolean,
+  startingBid: number
+): number {
+  if (isKuudraDeal) {
+    return kuudraArmorMinMarginByStartingBid(startingBid);
+  }
+  const t = tag.trim().toUpperCase();
+  if (isNecronsBladeItemId(t)) {
+    return (
+      cfg.itemMarginByTag.get(t) ?? DEFAULT_NECRON_BLADE_DEAL_MIN_MARGIN_COINS
+    );
+  }
+  return cfg.itemMarginByTag.get(t) ?? cfg.minMarginCoins;
+}
+
 export type BinDealRowInput = {
   auction_id: string;
   item_bytes: string | null;
@@ -290,8 +311,10 @@ export type BinDealAlertStats = {
   alertsSent: number;
   skippedAlreadyAlerted: number;
   skippedBelowMargin: number;
-  /** Necron’s Blade line: starting bid above cap (default 2B). */
+  /** Legacy: kept for JSON shape; high-BIN necron listings are no longer skipped (embed without mention). */
   skippedNecronBladeListingOverBinCap: number;
+  /** Necron blade line: BIN above cap — embed sent, @mention omitted. */
+  necronBladeHighBinNoMentionSent: number;
   /**
    * Terminator BIN skipped: NBT shows Fatal Tempo / Ultimate Fatal Tempo (not compared to base craft).
    */
@@ -391,13 +414,9 @@ export async function processBinDealAlertForRow(
   if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) return;
 
   const startingBid = Math.floor(row.starting_bid);
-  if (
-    isNecronsBladeItemId(tag) &&
-    startingBid > necronsBladeAlertMaxStartingBidCoins()
-  ) {
-    stats.skippedNecronBladeListingOverBinCap++;
-    return;
-  }
+  const necronBinCap = necronsBladeAlertMaxStartingBidCoins();
+  const suppressMentionForHighNecronBin =
+    isNecronsBladeItemId(tag) && startingBid > necronBinCap;
 
   if (tag === TERMINATOR_ITEM_ID) {
     const gate = await terminatorDealAlertGate(row);
@@ -431,9 +450,12 @@ export async function processBinDealAlertForRow(
     parseKuudraArmorTag(tag) !== null;
   const webhookUrl = resolveDealAlertWebhookUrl(cfg, tag, isKuudraDeal);
   if (!webhookUrl) return;
-  const minNeed = isKuudraDeal
-    ? kuudraArmorMinMarginByStartingBid(startingBid)
-    : (cfg.itemMarginByTag.get(tag) ?? cfg.minMarginCoins);
+  const minNeed = minMarginCoinsForDealAlert(
+    cfg,
+    tag,
+    isKuudraDeal,
+    startingBid
+  );
   if (margin < minNeed) {
     stats.skippedBelowMargin++;
     return;
@@ -469,7 +491,9 @@ export async function processBinDealAlertForRow(
     }
   }
 
-  const mention = await reserveDealAlertMention(supabase);
+  const mention = suppressMentionForHighNecronBin
+    ? null
+    : await reserveDealAlertMention(supabase);
   try {
     const ok = await postBinDealDiscordEmbed(
       webhookUrl,
@@ -484,7 +508,12 @@ export async function processBinDealAlertForRow(
         craftPricingLabel,
         listedForLabel: formatListedDuration(row.auction_start_ms),
       },
-      { mentionContent: mention?.content }
+      {
+        mentionContent: mention?.content,
+        embedNote: suppressMentionForHighNecronBin
+          ? `BIN above ${necronBinCap.toLocaleString("en-US")} — embed only (no @mention).`
+          : undefined,
+      }
     );
 
     if (!ok.ok) {
@@ -506,6 +535,9 @@ export async function processBinDealAlertForRow(
   }
 
   stats.alertsSent++;
+  if (suppressMentionForHighNecronBin) {
+    stats.necronBladeHighBinNoMentionSent++;
+  }
 }
 
 export async function processBinDealAlerts(
@@ -520,6 +552,7 @@ export async function processBinDealAlerts(
     skippedAlreadyAlerted: 0,
     skippedBelowMargin: 0,
     skippedNecronBladeListingOverBinCap: 0,
+    necronBladeHighBinNoMentionSent: 0,
     skippedTerminatorFatalTempo: 0,
     skippedTerminatorNoNbt: 0,
     skippedDealAlertsPaused: 0,
@@ -575,12 +608,13 @@ async function postBinDealDiscordEmbed(
     craftPricingLabel: string;
     listedForLabel: string;
   },
-  opts?: { mentionContent?: string }
+  opts?: { mentionContent?: string; embedNote?: string }
 ): Promise<{ ok: boolean; error?: string }> {
   const fmt = (n: number) =>
     `${n.toLocaleString("en-US")} coins`;
 
   const mention = opts?.mentionContent?.trim() || undefined;
+  const embedNote = opts?.embedNote?.trim();
 
   const components = buildDealAlertControlComponents();
   const pauseEmbedLine =
@@ -600,6 +634,9 @@ async function postBinDealDiscordEmbed(
             color: 0x22c55e,
             fields: [
               { name: "Tag", value: p.tag, inline: true },
+              ...(embedNote
+                ? [{ name: "Note", value: embedNote, inline: false }]
+                : []),
               {
                 name: "Craft pricing",
                 value: p.craftPricingLabel,
