@@ -17,6 +17,25 @@ create index if not exists sold_hyperions_timestamp_idx
 create index if not exists sold_hyperions_seller_uuid_idx
   on public.sold_hyperions (seller_uuid);
 
+-- Sold Hyperions by configured seller (e.g. Mansif): ended-auction poller snapshots craft/profit.
+create table if not exists public.mansif_hyperion_sales (
+  id uuid primary key default gen_random_uuid(),
+  auction_id text not null unique,
+  seller_uuid text not null,
+  seller_name text not null,
+  sold_price bigint not null,
+  craft_cost_snapshot bigint not null,
+  profit_vs_craft bigint not null,
+  ended_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists mansif_hyperion_sales_ended_at_idx
+  on public.mansif_hyperion_sales (ended_at desc);
+
+create index if not exists mansif_hyperion_sales_seller_uuid_idx
+  on public.mansif_hyperion_sales (seller_uuid);
+
 -- Mansif purchases (buyer = Mansif)
 create table if not exists public.purchased_hyperions (
   id uuid primary key default gen_random_uuid(),

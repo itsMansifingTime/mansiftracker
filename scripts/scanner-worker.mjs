@@ -7,6 +7,8 @@
  *             Default single job: BIN SNIPER (skipSupabase, no bin_listings writes) every 60s if SCAN_JOBS unset.
  *             Optional hourly test ping (needs BIN_DEAL_TEST_PING_ENABLED=true on Vercel):
  *             { "path": "/api/bin-deal-test-ping", "intervalMs": 3600000 } — use same CRON_SECRET as Vercel.
+ *             Optional dedicated Mansif Hyperion sold tracker:
+ *             { "path": "/api/track-mansif-hyperion-sales", "intervalMs": 30000 }
  *
  *   Optional: CRON_SECRET — sent as Authorization: Bearer <value> if set (add the same check in API routes if you use it).
  *
