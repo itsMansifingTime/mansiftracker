@@ -493,7 +493,9 @@ export async function processBinDealAlertForRow(
 
   const mention = suppressMentionForHighNecronBin
     ? null
-    : await reserveDealAlertMention(supabase);
+    : await reserveDealAlertMention(supabase, {
+        forceNecronBladeUnderCap: isNecronsBladeItemId(tag),
+      });
   try {
     const ok = await postBinDealDiscordEmbed(
       webhookUrl,

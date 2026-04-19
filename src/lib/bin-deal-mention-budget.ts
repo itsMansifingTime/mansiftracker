@@ -18,13 +18,18 @@ export function parseDealAlertMentionMaxPings(): number {
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_MAX_MENTION_PINGS;
 }
 
+/** Numeric Discord user id for @mentions (when set). */
+export function rawDealAlertMentionUserId(): string | null {
+  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
+  if (mentionRaw && /^\d{17,19}$/.test(mentionRaw)) return mentionRaw;
+  return null;
+}
+
 export function dealAlertMentionUserId(): string | null {
   if (process.env.BIN_DEAL_ALERT_MENTIONS_ENABLED?.trim() !== "true") {
     return null;
   }
-  const mentionRaw = process.env.BIN_DEAL_ALERT_MENTION_USER_ID?.trim();
-  if (mentionRaw && /^\d{17,19}$/.test(mentionRaw)) return mentionRaw;
-  return null;
+  return rawDealAlertMentionUserId();
 }
 
 export type DealAlertMentionReservation = {
@@ -33,14 +38,25 @@ export type DealAlertMentionReservation = {
   release: () => Promise<void>;
 };
 
+export type ReserveDealAlertMentionOpts = {
+  /**
+   * Necron’s Blade line with BIN at or below the high-BIN threshold: always allow @mention
+   * when `BIN_DEAL_ALERT_MENTION_USER_ID` is set, even if `BIN_DEAL_ALERT_MENTIONS_ENABLED` is off.
+   */
+  forceNecronBladeUnderCap?: boolean;
+};
+
 /**
  * Reserves one @mention slot when under the cap (atomic in Supabase when configured).
  * Returns `null` when the user should not be pinged for this message.
  */
 export async function reserveDealAlertMention(
-  supabase: SupabaseClient | null
+  supabase: SupabaseClient | null,
+  opts?: ReserveDealAlertMentionOpts
 ): Promise<DealAlertMentionReservation | null> {
-  const userId = dealAlertMentionUserId();
+  const userId = opts?.forceNecronBladeUnderCap
+    ? rawDealAlertMentionUserId()
+    : dealAlertMentionUserId();
   if (!userId) return null;
 
   const max = parseDealAlertMentionMaxPings();
