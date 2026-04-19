@@ -103,9 +103,9 @@ export default function BinSniperPage() {
             <code className="rounded bg-zinc-800 px-1 text-xs">bin_listings</code> or deal dedupe). With{" "}
             <strong className="text-zinc-400">Discord deal alerts</strong> env set, each run walks Hypixel pages{" "}
             <strong className="text-zinc-400">0–4</strong> (capped): every BIN is decoded one-by-one, allowlisted
-            items (e.g. Necron’s Blade line:{" "}
+            items (e.g. Necron’s Blade line + Dark Claymore:{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
-              HYPERION,VALKYRIE,SCYLLA,ASTRAEA
+              HYPERION,VALKYRIE,SCYLLA,ASTRAEA,DARK_CLAYMORE
             </code>
             ) get craft cost + Discord when margin clears (no DB). Without deal env, the route still runs a full
             paginated scan in parallel decode mode but skips DB writes. If a run is still in progress, the next tick is
