@@ -8,7 +8,10 @@ import {
 import { computeAuctionBreakdownFromItemBytes } from "./auction-breakdown";
 import { decodeSkyblockItemBytes } from "./decode-item-bytes";
 import { extraAttributesHasFatalTempo } from "./extra-enchantments";
-import { isNecronsBladeItemId } from "./gemstone-slots";
+import {
+  isNecronsBladeItemId,
+  normalizeSkyblockItemId,
+} from "./gemstone-slots";
 import { getExtraAttributesFromFullNbt } from "./item-bytes-modifiers";
 import { parseKuudraArmorTag } from "./kuudra-armor-crafting";
 import { computeTerminatorCraftCost } from "./terminator-calculator";
@@ -36,13 +39,16 @@ export type BinDealScannerEnvConfig = {
 
 const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 const TERMINATOR_ITEM_ID = "TERMINATOR";
+const DARK_CLAYMORE_ITEM_ID = "DARK_CLAYMORE";
 
 type TerminatorDealAlertGate = "ok" | "fatal_tempo" | "no_nbt";
 
 async function terminatorDealAlertGate(
   row: Pick<BinDealRowInput, "item_id" | "item_bytes">
 ): Promise<TerminatorDealAlertGate> {
-  const tag = row.item_id?.trim().toUpperCase() ?? "";
+  const tag = normalizeSkyblockItemId(
+    row.item_id?.trim().toUpperCase() ?? ""
+  );
   if (tag !== TERMINATOR_ITEM_ID) return "ok";
   if (!row.item_bytes?.trim()) return "no_nbt";
   const decoded = await decodeSkyblockItemBytes(row.item_bytes);
@@ -136,7 +142,9 @@ function parseItemMarginByTag(raw: string | undefined): Map<string, number> {
   for (const segment of raw.split(",")) {
     const idx = segment.indexOf(":");
     if (idx <= 0) continue;
-    const id = segment.slice(0, idx).trim().toUpperCase();
+    const id = normalizeSkyblockItemId(
+      segment.slice(0, idx).trim().toUpperCase()
+    );
     const numPart = segment.slice(idx + 1).trim().replace(/_/g, "");
     const n = Number.parseInt(numPart, 10);
     if (id && Number.isFinite(n) && n >= 0) m.set(id, n);
@@ -174,7 +182,7 @@ export function parseBinDealScannerEnv(): BinDealScannerEnvConfig {
     rawIds
       ? rawIds
           .split(",")
-          .map((s) => s.trim().toUpperCase())
+          .map((s) => normalizeSkyblockItemId(s.trim().toUpperCase()))
           .filter(Boolean)
       : []
   );
@@ -206,8 +214,11 @@ export function isBinDealAlertTag(
 ): boolean {
   const t = tag.trim().toUpperCase();
   if (!t) return false;
-  if (cfg.itemIds.has(t)) return true;
-  return cfg.kuudraArmorEnabled && parseKuudraArmorTag(t) !== null;
+  const norm = normalizeSkyblockItemId(t);
+  if (cfg.itemIds.has(norm)) return true;
+  return (
+    cfg.kuudraArmorEnabled && parseKuudraArmorTag(norm) !== null
+  );
 }
 
 export function binDealAlertsEnabled(cfg: BinDealScannerEnvConfig): boolean {
@@ -240,7 +251,7 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
     rawIds
       ? rawIds
           .split(",")
-          .map((s) => s.trim().toUpperCase())
+          .map((s) => normalizeSkyblockItemId(s.trim().toUpperCase()))
           .filter(Boolean)
       : []
   );
@@ -266,13 +277,27 @@ export function parseWideBinDealScannerEnv(): BinDealScannerEnvConfig {
   };
 }
 
+/**
+ * Same Discord target as Necron’s Blade line: optional `BIN_DEAL_HYPERION_WEBHOOK_URL`,
+ * else main deal webhook. Keeps Terminator / Dark Claymore pings working when only the
+ * “weapon” webhook is configured.
+ */
+function usesHyperionFamilyDealWebhook(tag: string): boolean {
+  const t = normalizeSkyblockItemId(tag.trim().toUpperCase());
+  return (
+    isNecronsBladeItemId(t) ||
+    t === TERMINATOR_ITEM_ID ||
+    t === DARK_CLAYMORE_ITEM_ID
+  );
+}
+
 function resolveDealAlertWebhookUrl(
   cfg: BinDealScannerEnvConfig,
   tag: string,
   isKuudraDeal: boolean
 ): string | null {
   if (isKuudraDeal) return cfg.kuudraWebhookUrl || cfg.webhookUrl;
-  if (isNecronsBladeItemId(tag)) {
+  if (usesHyperionFamilyDealWebhook(tag)) {
     return cfg.hyperionWebhookUrl || cfg.webhookUrl;
   }
   return cfg.webhookUrl;
@@ -287,7 +312,7 @@ function minMarginCoinsForDealAlert(
   if (isKuudraDeal) {
     return kuudraArmorMinMarginByStartingBid(startingBid);
   }
-  const t = tag.trim().toUpperCase();
+  const t = normalizeSkyblockItemId(tag.trim().toUpperCase());
   if (isNecronsBladeItemId(t)) {
     return (
       cfg.itemMarginByTag.get(t) ?? DEFAULT_NECRON_BLADE_DEAL_MIN_MARGIN_COINS
@@ -351,7 +376,9 @@ export type DealCraftForRowResult =
 export async function computeDealAlertCraftForRow(
   row: BinDealRowInput
 ): Promise<DealCraftForRowResult> {
-  const tag = row.item_id?.trim().toUpperCase() ?? "";
+  const tag = normalizeSkyblockItemId(
+    row.item_id?.trim().toUpperCase() ?? ""
+  );
   if (!tag) return { ok: false, error: "missing_item_id" };
   if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) {
     return { ok: false, error: "missing_item_bytes" };
@@ -389,7 +416,7 @@ export async function computeDealAlertCraftForRow(
     ok: true,
     craft: breakdown.total,
     itemName: breakdown.auction.itemName,
-    tag: breakdown.auction.tag,
+    tag: normalizeSkyblockItemId(breakdown.auction.tag),
     craftPricingLabel: "Instant sell (sell_summary) — bazaar craft lines",
   };
 }
@@ -409,8 +436,9 @@ export async function processBinDealAlertForRow(
 ): Promise<void> {
   if (!binDealAlertsEnabled(cfg)) return;
 
-  const tag = row.item_id?.trim().toUpperCase();
-  if (!tag || !isBinDealAlertTag(cfg, tag)) return;
+  const rawTag = row.item_id?.trim().toUpperCase();
+  if (!rawTag || !isBinDealAlertTag(cfg, rawTag)) return;
+  const tag = normalizeSkyblockItemId(rawTag);
   if (tag !== TERMINATOR_ITEM_ID && !row.item_bytes?.trim()) return;
 
   const startingBid = Math.floor(row.starting_bid);

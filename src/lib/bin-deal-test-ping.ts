@@ -9,6 +9,7 @@ import {
   terminatorRowPassesDealAlertItemGate,
   type BinDealRowInput,
 } from "./bin-deal-scanner";
+import { normalizeSkyblockItemId } from "./gemstone-slots";
 import { getSupabaseAdmin } from "./supabase-admin";
 import {
   decodeBinRow,
@@ -130,7 +131,7 @@ export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
       if (!tag || !isBinDealAlertTag(cfg, tag)) continue;
       if (Math.floor(row.starting_bid) < minStartingBidCoins) continue;
       if (
-        tag === "TERMINATOR" &&
+        normalizeSkyblockItemId(tag) === "TERMINATOR" &&
         !(await terminatorRowPassesDealAlertItemGate(row))
       ) {
         continue;
