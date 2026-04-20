@@ -5,9 +5,11 @@ import {
   formatListedDuration,
   isBinDealAlertTag,
   parseBinDealScannerEnv,
+  parseWideBinDealScannerEnv,
   postBinDealTestPingEmbed,
   terminatorRowPassesDealAlertItemGate,
   type BinDealRowInput,
+  type BinDealScannerEnvConfig,
 } from "./bin-deal-scanner";
 import { normalizeSkyblockItemId } from "./gemstone-slots";
 import { getSupabaseAdmin } from "./supabase-admin";
@@ -22,6 +24,24 @@ const COFL_AUCTION_BASE = "https://sky.coflnet.com/auction";
 
 /** Same rough window as deal streaming (first pages of AH). */
 export const TEST_PING_MAX_PAGES = 5;
+
+/** Extra SkyBlock ids always allowed in the test-ping pool (deal list uses `BIN_DEAL_ITEM_IDS` only). */
+const TEST_PING_EXTRA_ITEM_IDS: readonly string[] = ["DARK_CLAYMORE"];
+
+/**
+ * Test pings may include items from `BIN_DEAL_ITEM_IDS`, `BIN_DEAL_WIDE_ITEM_IDS`, and
+ * {@link TEST_PING_EXTRA_ITEM_IDS} so wide-only or claymore-only setups still get candidates.
+ */
+function binDealScannerEnvForTestPing(): BinDealScannerEnvConfig {
+  const main = parseBinDealScannerEnv();
+  const wide = parseWideBinDealScannerEnv();
+  const merged = new Set<string>([
+    ...main.itemIds,
+    ...wide.itemIds,
+    ...TEST_PING_EXTRA_ITEM_IDS.map((id) => id.toUpperCase()),
+  ]);
+  return { ...main, itemIds: merged };
+}
 
 /** Default: only BIN listings with starting bid at least this high (overridable via env). */
 export const DEFAULT_TEST_PING_MIN_STARTING_BID_COINS = 50_000_000;
@@ -57,7 +77,7 @@ export type BinDealTestPingResult =
  */
 export async function runBinDealTestPing(): Promise<BinDealTestPingResult> {
   const minStartingBidCoins = testPingMinStartingBidCoins();
-  const cfg = parseBinDealScannerEnv();
+  const cfg = binDealScannerEnvForTestPing();
   if (cfg.itemIds.size === 0 && !cfg.kuudraArmorEnabled) {
     return {
       ok: false,
