@@ -36,3 +36,59 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Ingest API
+
+API path for external clients: `POST /api/ingest`
+
+### Auth
+
+- Header: `Authorization: Bearer <INGEST_TOKEN>`
+- Env var: `INGEST_TOKEN` (required in local `.env.local` and Vercel project settings)
+
+### Request JSON
+
+```json
+{
+  "source": "friend-client",
+  "message": "hello from mansiftracker",
+  "metadata": { "kind": "ping", "auctionId": "..." }
+}
+```
+
+### Responses
+
+- `201` `{ "id": "<uuid>" }`
+- `400` `{ "error": "..." }` (invalid JSON / validation failure)
+- `401` `{ "error": "Unauthorized" }` (missing or invalid bearer token)
+
+### Example curl
+
+```bash
+curl -X POST "https://mansiftracker.vercel.app/api/ingest" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $INGEST_TOKEN" \
+  -d '{
+    "source":"friend-client",
+    "message":"sample event",
+    "metadata":{"build":"v1"}
+  }'
+```
+
+### Storage setup (Supabase)
+
+Run `supabase/schema.sql` in the Supabase SQL editor to create `public.ingestions`:
+
+- `id uuid primary key default gen_random_uuid()`
+- `source text not null`
+- `message text not null`
+- `metadata jsonb`
+- `created_at timestamptz not null default now()`
+
+### UI
+
+- View ingested rows at `/ingestions` (newest first).
+
+### Tests
+
+- Run `npm test` for ingest auth/validation coverage.

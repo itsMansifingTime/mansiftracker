@@ -345,3 +345,15 @@ create table if not exists public.hypixel_active_auctions (
 
 create index if not exists hypixel_active_auctions_sync_run_id_idx
   on public.hypixel_active_auctions (sync_run_id);
+
+-- Generic JSON ingest endpoint storage (POST /api/ingest).
+create table if not exists public.ingestions (
+  id uuid primary key default gen_random_uuid(),
+  source text not null,
+  message text not null,
+  metadata jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists ingestions_created_at_idx
+  on public.ingestions (created_at desc);
