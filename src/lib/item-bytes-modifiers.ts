@@ -255,11 +255,32 @@ function clampInt(raw: unknown, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
 }
 
+function isArmorTag(raw: string): boolean {
+  const t = raw.trim().toUpperCase();
+  return (
+    t.endsWith("_HELMET") ||
+    t.endsWith("_CHESTPLATE") ||
+    t.endsWith("_LEGGINGS") ||
+    t.endsWith("_BOOTS")
+  );
+}
+
+function isDungeonArmorForMasterStars(
+  extra: Record<string, unknown>,
+  opts?: BuildModifierCostOptions
+): boolean {
+  const tagOk = opts?.itemTag ? isArmorTag(opts.itemTag) : false;
+  const dungeonFlag =
+    extra.dungeon_item === true ||
+    Number(extra.dungeon_item) > 0 ||
+    typeof extra.dungeon_item_level !== "undefined" ||
+    String(extra.item_tier ?? "").toUpperCase() === "DUNGEON";
+  return tagOk && dungeonFlag;
+}
+
 /**
- * Dungeon stars from ExtraAttributes:
- * - `upgrade_level` = regular stars (0..5)
- * - `dungeon_item_level` = master stars (0..5)
- * - legacy fallback: if `upgrade_level` is 6..10 and master field is missing, treat overflow as master.
+ * Stars from `upgrade_level` where 1-5 are regular stars and 6-10 map to
+ * 5 regular + (upgrade_level - 5) master stars.
  */
 export function resolveDungeonStarLevels(extra: Record<string, unknown>): {
   regular: number;
@@ -267,17 +288,8 @@ export function resolveDungeonStarLevels(extra: Record<string, unknown>): {
   total: number;
 } {
   const regularRaw = clampInt(extra.upgrade_level ?? extra.upgradeLevel, 0, 10);
-  let regular = Math.min(5, regularRaw);
-  let master = clampInt(
-    extra.dungeon_item_level ?? extra.dungeonItemLevel,
-    0,
-    5
-  );
-
-  if (master === 0 && regularRaw > 5) {
-    master = Math.min(5, regularRaw - 5);
-    regular = 5;
-  }
+  const regular = Math.min(5, regularRaw);
+  const master = Math.min(5, Math.max(0, regularRaw - 5));
 
   return { regular, master, total: Math.min(10, regular + master) };
 }
@@ -285,8 +297,10 @@ export function resolveDungeonStarLevels(extra: Record<string, unknown>): {
 export function masterStarCostFromExtra(
   extra: Record<string, unknown>,
   products: Record<string, BazaarProduct>,
-  instantSell: (p: BazaarProduct | undefined) => number
+  instantSell: (p: BazaarProduct | undefined) => number,
+  opts?: BuildModifierCostOptions
 ): ModifierCostLine | null {
+  if (!isDungeonArmorForMasterStars(extra, opts)) return null;
   const { master } = resolveDungeonStarLevels(extra);
   if (master <= 0) return null;
   let cost = 0;
@@ -431,7 +445,12 @@ export async function buildModifierCostLines(
     }
   }
 
-  const masterStarLine = masterStarCostFromExtra(extra, products, instantSell);
+  const masterStarLine = masterStarCostFromExtra(
+    extra,
+    products,
+    instantSell,
+    opts
+  );
   if (masterStarLine) lines.push(masterStarLine);
 
   lines.push(...buildGemCostLines(extra, products, instantSell, opts));
