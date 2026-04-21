@@ -165,6 +165,10 @@ export function getGemSlotUnlockRecipesForItem(
   normalizedItemId: string
 ): readonly GemSlotUnlockRecipe[] | null {
   if (!normalizedItemId) return null;
+  if (normalizedItemId === "DARK_CLAYMORE") {
+    // Dark Claymore has the same two-slot combat/sapphire unlock flow in this estimator.
+    return HYPERION_SLOT_UNLOCK_RECIPES;
+  }
   if (NECRON_BLADE_IDS.has(normalizedItemId)) {
     return HYPERION_SLOT_UNLOCK_RECIPES;
   }

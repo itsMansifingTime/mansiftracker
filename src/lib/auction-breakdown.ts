@@ -14,14 +14,11 @@ import {
 } from "./coflnet";
 import { cumulativeRegularStarCosts } from "./hyperion-stars";
 import {
-  HYPERION_SLOT_UNLOCK_RECIPES,
-  hyperionSlotUnlockCost,
   isNecronsBladeItemId,
 } from "./gemstone-slots";
 import {
   HANDLE_DEFAULT_PCT_UNDER_BIN,
   HOT_POTATO_BOOKS_COUNT,
-  SOCKETED_SAPPHIRE_COUNT,
 } from "./calculator-options";
 import { enchantTypeToPrefix, getEnchantCost } from "./enchant-pricing";
 import {
@@ -43,9 +40,11 @@ import {
 } from "./hypixel-auction";
 import { fetchDecodedAuctionFromSupabaseSnapshot } from "./supabase-active-auction";
 import {
+  buildGemCostLines,
   buildModifierCostLines,
   getExtraAttributesFromFullNbt,
   mergeItemExtraAttributes,
+  resolveDungeonStarLevels,
   resolveFumingPotatoCount,
 } from "./item-bytes-modifiers";
 
@@ -448,20 +447,10 @@ async function computeHyperionBreakdown(
   const fromExtra = parseEnchantmentsFromExtraAttributes(mergedExtra);
   const enchants =
     fromExtra.length > 0 ? fromExtra : (auction.enchantments ?? []);
-  const starLevel = Math.min(10, Math.max(0, Number(flatNbt.upgrade_level) ?? 0));
+  const { regular: regularStarCount, master: masterStarCount, total: starLevel } =
+    resolveDungeonStarLevels(flatNbt);
   const fumingCount = resolveFumingPotatoCount(flatNbt);
   const hasRecomb = Number(flatNbt.rarity_upgrades) >= 1;
-  const flat = flatNbt as Record<string, string | number>;
-  const hasFlawlessSapphire =
-    String(flat.SAPPHIRE_0) === "FLAWLESS" ||
-    String(flat.COMBAT_0) === "FLAWLESS";
-  const hasPerfectSapphire =
-    String(flat.SAPPHIRE_0) === "PERFECT" ||
-    String(flat.COMBAT_0) === "PERFECT";
-  const slotsUnlocked =
-    hasFlawlessSapphire ||
-    hasPerfectSapphire ||
-    String(flat.unlocked_slots ?? "").length > 0;
 
   const handleCost = Math.round(
     necronBin * (1 - HANDLE_DEFAULT_PCT_UNDER_BIN / 100)
@@ -507,17 +496,19 @@ async function computeHyperionBreakdown(
 
   const enchantLines: BreakdownLine[] = [];
   if (starLevel > 0) {
-    const regularCount = Math.min(starLevel, 5);
-    const masterCount = Math.min(Math.max(starLevel - 5, 0), 5);
     const witherProduct = getProduct(products, "ESSENCE_WITHER");
     const witherPerUnit = linePrice(witherProduct);
-    const { essence, coins } = cumulativeRegularStarCosts(regularCount);
+    const { essence, coins } = cumulativeRegularStarCosts(regularStarCount);
     let starCost = Math.round(witherPerUnit * essence) + coins;
-    for (let i = 0; i < masterCount; i++) {
+    for (let i = 0; i < masterStarCount; i++) {
       starCost += linePrice(getProduct(products, MASTER_STAR_IDS[i]));
     }
+    const starLabel =
+      masterStarCount > 0
+        ? `Stars (${starLevel}/10, includes ${masterStarCount} master)`
+        : `Stars (${starLevel}/10)`;
     enchantLines.push({
-      label: `Stars (${starLevel}/10)`,
+      label: starLabel,
       cost: starCost,
     });
   }
@@ -547,51 +538,17 @@ async function computeHyperionBreakdown(
     subtotal: sumLines(enchantLines),
   });
 
-  if (slotsUnlocked || hasFlawlessSapphire || hasPerfectSapphire) {
-    const gemLines: BreakdownLine[] = slotsUnlocked
-      ? [
-          {
-            label: HYPERION_SLOT_UNLOCK_RECIPES[0].label,
-            cost: hyperionSlotUnlockCost(
-              HYPERION_SLOT_UNLOCK_RECIPES[0],
-              products,
-              linePrice
-            ),
-          },
-          {
-            label: HYPERION_SLOT_UNLOCK_RECIPES[1].label,
-            cost: hyperionSlotUnlockCost(
-              HYPERION_SLOT_UNLOCK_RECIPES[1],
-              products,
-              linePrice
-            ),
-          },
-        ]
-      : [];
-    if (hasFlawlessSapphire) {
-      gemLines.push({
-        label: "Flawless Sapphire (×2)",
-        cost:
-          linePrice(getProduct(products, "FLAWLESS_SAPPHIRE_GEM")) *
-          SOCKETED_SAPPHIRE_COUNT,
-      });
-    }
-    if (hasPerfectSapphire) {
-      gemLines.push({
-        label: "Perfect Sapphire (×2)",
-        cost:
-          linePrice(getProduct(products, "PERFECT_SAPPHIRE_GEM")) *
-          SOCKETED_SAPPHIRE_COUNT,
-      });
-    }
-    if (gemLines.length > 0) {
-      sections.push({
-        id: "gems",
-        title: "Gems",
-        lines: gemLines,
-        subtotal: sumLines(gemLines),
-      });
-    }
+  const gemLines = buildGemCostLines(mergedExtra, products, linePrice, {
+    itemTag: auction.tag,
+    itemName: auction.itemName,
+  });
+  if (gemLines.length > 0) {
+    sections.push({
+      id: "gems",
+      title: "Gems",
+      lines: gemLines,
+      subtotal: sumLines(gemLines),
+    });
   }
 
   const wimpState = getHyperionWimpScrollsFromAuction({

@@ -241,6 +241,83 @@ export type BuildModifierCostOptions = {
   itemName?: string;
 };
 
+const MASTER_STAR_IDS = [
+  "FIRST_MASTER_STAR",
+  "SECOND_MASTER_STAR",
+  "THIRD_MASTER_STAR",
+  "FOURTH_MASTER_STAR",
+  "FIFTH_MASTER_STAR",
+] as const;
+
+function clampInt(raw: unknown, min: number, max: number): number {
+  const n = Math.floor(Number(raw));
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(max, Math.max(min, n));
+}
+
+/**
+ * Dungeon stars from ExtraAttributes:
+ * - `upgrade_level` = regular stars (0..5)
+ * - `dungeon_item_level` = master stars (0..5)
+ * - legacy fallback: if `upgrade_level` is 6..10 and master field is missing, treat overflow as master.
+ */
+export function resolveDungeonStarLevels(extra: Record<string, unknown>): {
+  regular: number;
+  master: number;
+  total: number;
+} {
+  const regularRaw = clampInt(extra.upgrade_level ?? extra.upgradeLevel, 0, 10);
+  let regular = Math.min(5, regularRaw);
+  let master = clampInt(
+    extra.dungeon_item_level ?? extra.dungeonItemLevel,
+    0,
+    5
+  );
+
+  if (master === 0 && regularRaw > 5) {
+    master = Math.min(5, regularRaw - 5);
+    regular = 5;
+  }
+
+  return { regular, master, total: Math.min(10, regular + master) };
+}
+
+export function masterStarCostFromExtra(
+  extra: Record<string, unknown>,
+  products: Record<string, BazaarProduct>,
+  instantSell: (p: BazaarProduct | undefined) => number
+): ModifierCostLine | null {
+  const { master } = resolveDungeonStarLevels(extra);
+  if (master <= 0) return null;
+  let cost = 0;
+  for (let i = 0; i < master; i++) {
+    cost += instantSell(getProduct(products, MASTER_STAR_IDS[i]));
+  }
+  return {
+    label: master === 1 ? "Master Star (×1)" : `Master Stars (×${master})`,
+    cost: Math.round(cost),
+  };
+}
+
+export function buildGemCostLines(
+  extra: Record<string, unknown>,
+  products: Record<string, BazaarProduct>,
+  instantSell: (p: BazaarProduct | undefined) => number,
+  opts?: BuildModifierCostOptions
+): ModifierCostLine[] {
+  const lines: ModifierCostLine[] = [];
+  appendGemSlotUnlockLines(
+    lines,
+    extra,
+    products,
+    instantSell,
+    opts?.itemTag,
+    opts?.itemName
+  );
+  lines.push(...collectGemstoneLines(extra, products, instantSell));
+  return lines;
+}
+
 /**
  * Hot Potato Book count from ExtraAttributes.
  * Combined `hpc` (or `hot_potato_count`): **1–10** = that many HPBs; **11–15** still counts as **10** hot
@@ -354,15 +431,10 @@ export async function buildModifierCostLines(
     }
   }
 
-  appendGemSlotUnlockLines(
-    lines,
-    extra,
-    products,
-    instantSell,
-    opts?.itemTag,
-    opts?.itemName
-  );
-  lines.push(...collectGemstoneLines(extra, products, instantSell));
+  const masterStarLine = masterStarCostFromExtra(extra, products, instantSell);
+  if (masterStarLine) lines.push(masterStarLine);
+
+  lines.push(...buildGemCostLines(extra, products, instantSell, opts));
 
   const rodLines = await collectRodAttachmentLines(
     extra,
