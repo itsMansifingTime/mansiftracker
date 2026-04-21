@@ -265,11 +265,29 @@ function isArmorTag(raw: string): boolean {
   );
 }
 
-function isDungeonArmorForMasterStars(
+function isWeaponTag(raw: string): boolean {
+  const t = raw.trim().toUpperCase();
+  return (
+    t.endsWith("_SWORD") ||
+    t.endsWith("_BOW") ||
+    t.endsWith("_SHORTBOW") ||
+    t.endsWith("_DAGGER") ||
+    t.endsWith("_GAUNTLET") ||
+    t === "HYPERION" ||
+    t === "VALKYRIE" ||
+    t === "ASTRAEA" ||
+    t === "SCYLLA" ||
+    t === "DARK_CLAYMORE"
+  );
+}
+
+export function isDungeonArmorOrWeaponForMasterStars(
   extra: Record<string, unknown>,
   opts?: BuildModifierCostOptions
 ): boolean {
-  const tagOk = opts?.itemTag ? isArmorTag(opts.itemTag) : false;
+  const tagOk = opts?.itemTag
+    ? isArmorTag(opts.itemTag) || isWeaponTag(opts.itemTag)
+    : false;
   const dungeonFlag =
     extra.dungeon_item === true ||
     Number(extra.dungeon_item) > 0 ||
@@ -300,7 +318,7 @@ export function masterStarCostFromExtra(
   instantSell: (p: BazaarProduct | undefined) => number,
   opts?: BuildModifierCostOptions
 ): ModifierCostLine | null {
-  if (!isDungeonArmorForMasterStars(extra, opts)) return null;
+  if (!isDungeonArmorOrWeaponForMasterStars(extra, opts)) return null;
   const { master } = resolveDungeonStarLevels(extra);
   if (master <= 0) return null;
   let cost = 0;

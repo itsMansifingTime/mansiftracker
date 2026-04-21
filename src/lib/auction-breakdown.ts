@@ -43,9 +43,19 @@ import {
   buildGemCostLines,
   buildModifierCostLines,
   getExtraAttributesFromFullNbt,
+  isDungeonArmorOrWeaponForMasterStars,
   mergeItemExtraAttributes,
+  resolveDungeonStarLevels,
   resolveFumingPotatoCount,
 } from "./item-bytes-modifiers";
+
+const MASTER_STAR_IDS = [
+  "FIRST_MASTER_STAR",
+  "SECOND_MASTER_STAR",
+  "THIRD_MASTER_STAR",
+  "FOURTH_MASTER_STAR",
+  "FIFTH_MASTER_STAR",
+] as const;
 
 const WITHER_CATALYST_COUNT = 24;
 const LASR_EYE_COUNT = 8;
@@ -438,10 +448,8 @@ async function computeHyperionBreakdown(
   const fromExtra = parseEnchantmentsFromExtraAttributes(mergedExtra);
   const enchants =
     fromExtra.length > 0 ? fromExtra : (auction.enchantments ?? []);
-  const starLevel = Math.min(
-    5,
-    Math.max(0, Number(flatNbt.upgrade_level) ?? 0)
-  );
+  const { regular: regularStars, master: masterStars, total: starLevel } =
+    resolveDungeonStarLevels(flatNbt);
   const fumingCount = resolveFumingPotatoCount(flatNbt);
   const hasRecomb = Number(flatNbt.rarity_upgrades) >= 1;
 
@@ -491,10 +499,23 @@ async function computeHyperionBreakdown(
   if (starLevel > 0) {
     const witherProduct = getProduct(products, "ESSENCE_WITHER");
     const witherPerUnit = linePrice(witherProduct);
-    const { essence, coins } = cumulativeRegularStarCosts(starLevel);
+    const { essence, coins } = cumulativeRegularStarCosts(regularStars);
     let starCost = Math.round(witherPerUnit * essence) + coins;
+    if (
+      masterStars > 0 &&
+      isDungeonArmorOrWeaponForMasterStars(flatNbt, { itemTag: auction.tag })
+    ) {
+      for (let i = 0; i < masterStars; i++) {
+        starCost += linePrice(getProduct(products, MASTER_STAR_IDS[i]));
+      }
+    }
+    const label =
+      masterStars > 0 &&
+      isDungeonArmorOrWeaponForMasterStars(flatNbt, { itemTag: auction.tag })
+        ? `Stars (${starLevel}/10, includes ${masterStars} master)`
+        : `Stars (${Math.min(5, starLevel)}/5)`;
     enchantLines.push({
-      label: `Stars (${starLevel}/5)`,
+      label,
       cost: starCost,
     });
   }
