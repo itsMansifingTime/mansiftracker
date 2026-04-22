@@ -4,6 +4,8 @@ import { fetchLowestBinByTag } from "./coflnet";
 import {
   getGemSlotUnlockRecipesForExtraAndTag,
   hyperionSlotUnlockCost,
+  isNecronsBladeItemId,
+  normalizeSkyblockItemId,
 } from "./gemstone-slots";
 import { resolveReforgeStoneProduct } from "./reforge-stone-by-modifier";
 
@@ -285,15 +287,20 @@ export function isDungeonArmorOrWeaponForMasterStars(
   extra: Record<string, unknown>,
   opts?: BuildModifierCostOptions
 ): boolean {
-  const tagOk = opts?.itemTag
-    ? isArmorTag(opts.itemTag) || isWeaponTag(opts.itemTag)
-    : false;
+  if (!opts?.itemTag?.trim()) return false;
+  const norm = normalizeSkyblockItemId(opts.itemTag);
+  /** Necron’s Blade + Dark Claymore are catacombs gear; NBT often omits `dungeon_item`. */
+  if (isNecronsBladeItemId(norm) || norm === "DARK_CLAYMORE") return true;
+
+  const tagOk = isArmorTag(opts.itemTag) || isWeaponTag(opts.itemTag);
+  if (!tagOk) return false;
+
   const dungeonFlag =
     extra.dungeon_item === true ||
     Number(extra.dungeon_item) > 0 ||
     typeof extra.dungeon_item_level !== "undefined" ||
     String(extra.item_tier ?? "").toUpperCase() === "DUNGEON";
-  return tagOk && dungeonFlag;
+  return dungeonFlag;
 }
 
 /**
@@ -305,7 +312,11 @@ export function resolveDungeonStarLevels(extra: Record<string, unknown>): {
   master: number;
   total: number;
 } {
-  const regularRaw = clampInt(extra.upgrade_level ?? extra.upgradeLevel, 0, 10);
+  const regularRaw = clampInt(
+    extra.upgrade_level ?? extra.upgradeLevel ?? extra.item_upgrade_level,
+    0,
+    10
+  );
   const regular = Math.min(5, regularRaw);
   const master = Math.min(5, Math.max(0, regularRaw - 5));
 
