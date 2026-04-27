@@ -16,6 +16,7 @@ const links = [
   { href: "/wide-bin-scan", label: "Wide scan" },
   { href: "/ah-snapshot", label: "AH snapshot" },
   { href: "/bazaar-snapshot", label: "Bazaar" },
+  { href: "/fire-sale-skins", label: "Fire sale skins" },
 ];
 
 export function Nav() {
