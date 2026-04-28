@@ -322,8 +322,8 @@ export default function FireSaleSkinsPage() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-100">
       <Nav />
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">
-        <div>
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-6">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4">
           <h1 className="text-xl font-semibold tracking-tight">
             Fire Sale skins
           </h1>
@@ -333,7 +333,7 @@ export default function FireSaleSkinsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3">
           <button
             type="button"
             onClick={() => void loadRows("snapshot")}
@@ -358,12 +358,14 @@ export default function FireSaleSkinsPage() {
           >
             Reload overrides
           </button>
-          {filteredRows.length > 0 ? (
-            <span className="text-sm text-zinc-400">{filteredRows.length} rows</span>
+          {rows.length > 0 ? (
+            <span className="text-sm text-zinc-400">
+              Showing {filteredRows.length}/{rows.length} rows
+            </span>
           ) : null}
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4 text-sm">
             <label className="inline-flex items-center gap-2">
               <ToggleSwitch
@@ -400,7 +402,7 @@ export default function FireSaleSkinsPage() {
         </div>
 
         {advancedMode && availableYears.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3 text-sm">
             <span className="text-zinc-400">Years:</span>
             {availableYears.map((year) => (
               <label key={year} className="inline-flex items-center gap-2">
@@ -415,7 +417,7 @@ export default function FireSaleSkinsPage() {
           </div>
         ) : null}
         {advancedMode ? (
-          <div className="flex flex-wrap items-center gap-3 text-sm">
+          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3 text-sm">
             <span className="text-zinc-400">Skin type:</span>
             <label className="inline-flex items-center gap-2">
               <ToggleSwitch
@@ -463,7 +465,7 @@ export default function FireSaleSkinsPage() {
         ) : null}
 
         {advancedMode ? (
-          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-3">
             <p className="mb-2 text-sm font-medium text-zinc-200">Market Cap</p>
             <div className="mb-3 flex flex-wrap gap-3 text-sm">
               <span className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-300">
@@ -505,9 +507,9 @@ export default function FireSaleSkinsPage() {
         ) : null}
 
         {sortedRows.length > 0 ? (
-          <div className="overflow-auto rounded-xl border border-zinc-800">
+          <div className="overflow-auto rounded-xl border border-zinc-800 bg-zinc-900/20">
             <table className="min-w-full text-sm">
-              <thead className="bg-zinc-900 text-zinc-300">
+              <thead className="sticky top-0 z-10 bg-zinc-900 text-zinc-300">
                 <tr>
                   <th className="px-3 py-2 text-left">
                     <button
@@ -617,7 +619,10 @@ export default function FireSaleSkinsPage() {
               </thead>
               <tbody>
                 {sortedRows.map((r) => (
-                  <tr key={`${r.cosmetic}:${r.dateAvailable}`} className="border-t border-zinc-800">
+                  <tr
+                    key={`${r.cosmetic}:${r.dateAvailable}`}
+                    className="border-t border-zinc-800 odd:bg-zinc-900/20"
+                  >
                     <td className="px-3 py-2">
                       <ToggleSwitch
                         checked={r.owned}
