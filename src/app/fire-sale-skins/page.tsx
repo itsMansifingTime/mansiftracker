@@ -12,12 +12,149 @@ type FireSaleRow = {
   sheetPrice: number;
   coflTag: string | null;
   monthlyMedian: number | null;
-  finalPrice: number;
-  priceSource: "cofl_monthly_median" | "sheet";
+  finalPrice: number | null;
+  priceSource: "manual_override" | "cofl_monthly_median" | "missing";
 };
 
+type SortKey =
+  | "owned"
+  | "cosmetic"
+  | "date"
+  | "stock"
+  | "sheetPrice"
+  | "finalPrice"
+  | "marketCap"
+  | "coinsPerGem"
+  | "priceSource"
+  | "skinType";
+type SortDirection = "asc" | "desc";
+
 function formatCoins(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000_000_000) {
+    const n = value / 1_000_000_000_000;
+    return `${n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)}T`;
+  }
+  if (abs >= 1_000_000_000) {
+    const n = value / 1_000_000_000;
+    return `${n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)}B`;
+  }
+  if (abs >= 1_000_000) {
+    const n = value / 1_000_000;
+    return `${n >= 100 ? n.toFixed(0) : n >= 10 ? n.toFixed(1) : n.toFixed(2)}M`;
+  }
   return new Intl.NumberFormat("en-US").format(Math.round(value));
+}
+
+const PET_NAMES = [
+  "allay",
+  "ammonite",
+  "armadillo",
+  "axolotl",
+  "baby yeti",
+  "bal",
+  "bat",
+  "bee",
+  "bingo",
+  "black cat",
+  "blaze",
+  "blue whale",
+  "chicken",
+  "crow",
+  "cow",
+  "dolphin",
+  "dragon",
+  "elephant",
+  "enderman",
+  "endermite",
+  "eman",
+  "flying fish",
+  "giraffe",
+  "glacite golem",
+  "goblin",
+  "golden dragon",
+  "gorilla",
+  "grandma wolf",
+  "griffin",
+  "guardian",
+  "hedgehog",
+  "horse",
+  "hound",
+  "jellyfish",
+  "jerry",
+  "lion",
+  "mammoth",
+  "magma cube",
+  "megalodon",
+  "mithril golem",
+  "monkey",
+  "mooshroom",
+  "ocelot",
+  "octopus",
+  "owl",
+  "parrot",
+  "penguin",
+  "phoenix",
+  "pig",
+  "pigman",
+  "rabbit",
+  "rat",
+  "reindeer",
+  "rock",
+  "rift ferret",
+  "scatha",
+  "sea horse",
+  "sheep",
+  "silverfish",
+  "skeleton",
+  "sloth",
+  "snail",
+  "snowman",
+  "slug",
+  "spider",
+  "spirit",
+  "squid",
+  "tarantula",
+  "trex",
+  "tiger",
+  "turtle",
+  "wolf",
+  "wisp",
+  "wither skeleton",
+];
+
+function getSkinType(cosmetic: string): "pet" | "armor" {
+  const n = cosmetic.toLowerCase();
+  return PET_NAMES.some((pet) => n.includes(pet)) ? "pet" : "armor";
+}
+
+function ToggleSwitch({
+  checked,
+  onToggle,
+  label,
+}: {
+  checked: boolean;
+  onToggle: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={onToggle}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${
+        checked ? "bg-sky-500" : "bg-zinc-700"
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition ${
+          checked ? "translate-x-4" : "translate-x-1"
+        }`}
+      />
+    </button>
+  );
 }
 
 export default function FireSaleSkinsPage() {
@@ -27,12 +164,139 @@ export default function FireSaleSkinsPage() {
   const [loaded, setLoaded] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
+  const [sortKey, setSortKey] = useState<SortKey>("finalPrice");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [showOwned, setShowOwned] = useState(true);
+  const [showUnowned, setShowUnowned] = useState(true);
+  const [search, setSearch] = useState("");
+  const [advancedMode, setAdvancedMode] = useState(false);
+  const [selectedYears, setSelectedYears] = useState<number[]>([]);
+  const [showPetSkins, setShowPetSkins] = useState(true);
+  const [showArmorSkins, setShowArmorSkins] = useState(true);
 
-  async function loadRows(refresh = false) {
+  const availableYears = Array.from(new Set(rows.map((r) => r.year))).sort((a, b) => b - a);
+
+  function toggleYear(year: number) {
+    setSelectedYears((prev) =>
+      prev.includes(year) ? prev.filter((y) => y !== year) : [...prev, year]
+    );
+  }
+
+  function toggleOwned(target: FireSaleRow) {
+    setRows((prev) =>
+      prev.map((row) =>
+        row.cosmetic === target.cosmetic && row.dateAvailable === target.dateAvailable
+          ? { ...row, owned: !row.owned }
+          : row
+      )
+    );
+  }
+
+  function toggleSort(nextKey: SortKey) {
+    if (sortKey !== nextKey) {
+      setSortKey(nextKey);
+      setSortDirection("desc");
+      return;
+    }
+    setSortDirection((prev) => (prev === "desc" ? "asc" : "desc"));
+  }
+
+  const baseFilteredRows = rows.filter((r) => {
+    const matchesYear = selectedYears.length === 0 || selectedYears.includes(r.year);
+    if (!matchesYear) return false;
+    const skinType = getSkinType(r.cosmetic);
+    const matchesType = (skinType === "pet" && showPetSkins) || (skinType === "armor" && showArmorSkins);
+    if (!matchesType) return false;
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return r.cosmetic.toLowerCase().includes(q);
+  });
+
+  const filteredRows = baseFilteredRows.filter((r) => {
+    const matchesOwned = (r.owned && showOwned) || (!r.owned && showUnowned);
+    return matchesOwned;
+  });
+
+  function getSortValue(row: FireSaleRow, key: SortKey): number | string {
+    switch (key) {
+      case "owned":
+        return row.owned ? 1 : 0;
+      case "cosmetic":
+        return row.cosmetic.toLowerCase();
+      case "date":
+        return new Date(row.dateAvailable).getTime();
+      case "stock":
+        return Number.parseInt(row.stock, 10);
+      case "sheetPrice":
+        return row.sheetPrice;
+      case "finalPrice":
+        return row.finalPrice ?? -1;
+      case "marketCap": {
+        const qty = Number.parseInt(row.stock, 10);
+        return row.finalPrice != null && Number.isFinite(qty) ? row.finalPrice * qty : -1;
+      }
+      case "coinsPerGem":
+        return row.finalPrice != null && row.sheetPrice > 0 ? row.finalPrice / row.sheetPrice : -1;
+      case "priceSource":
+        return row.priceSource;
+      case "skinType":
+        return getSkinType(row.cosmetic);
+      default:
+        return 0;
+    }
+  }
+
+  const sortedRows = [...filteredRows].sort((a, b) => {
+    const av = getSortValue(a, sortKey);
+    const bv = getSortValue(b, sortKey);
+    if (typeof av === "string" && typeof bv === "string") {
+      const cmp = av.localeCompare(bv);
+      return sortDirection === "asc" ? cmp : -cmp;
+    }
+    const delta = Number(av) - Number(bv);
+    return sortDirection === "asc" ? delta : -delta;
+  });
+
+  function sortArrowFor(key: SortKey): string {
+    if (sortKey !== key) return "";
+    return sortDirection === "desc" ? "↓" : "↑";
+  }
+
+  const ownedRows = filteredRows.filter((r) => r.owned);
+  const unownedRows = filteredRows.filter((r) => !r.owned);
+  const ownedTotal = ownedRows.reduce((sum, r) => sum + (r.finalPrice ?? 0), 0);
+  const unownedTotal = unownedRows.reduce((sum, r) => sum + (r.finalPrice ?? 0), 0);
+  const totalMarketCap = baseFilteredRows.reduce((sum, r) => {
+    if (r.finalPrice == null) return sum;
+    const qty = Number.parseInt(r.stock, 10);
+    return Number.isFinite(qty) ? sum + r.finalPrice * qty : sum;
+  }, 0);
+  const averageCoinsPerGemByYear = Array.from(new Set(filteredRows.map((r) => r.year)))
+    .sort((a, b) => b - a)
+    .map((year) => {
+      const rowsForYear = filteredRows.filter(
+        (r) => r.year === year && r.finalPrice != null && r.sheetPrice > 0
+      );
+      const avg =
+        rowsForYear.length > 0
+          ? rowsForYear.reduce((sum, r) => sum + (r.finalPrice as number) / r.sheetPrice, 0) /
+            rowsForYear.length
+          : null;
+      return { year, avg, count: rowsForYear.length };
+    });
+
+  async function loadRows(
+    mode: "snapshot" | "reloadPrices" | "reloadOverrides" = "snapshot"
+  ) {
     setRunning(true);
     setError(null);
     try {
-      const q = refresh ? "?refresh=1" : "";
+      const q =
+        mode === "reloadPrices"
+          ? "?reloadPrices=1"
+          : mode === "reloadOverrides"
+            ? "?reloadOverrides=1"
+            : "";
       const res = await fetch(`/api/fire-sale-skins${q}`, { cache: "no-store" });
       const json = (await res.json()) as {
         ok: boolean;
@@ -61,21 +325,18 @@ export default function FireSaleSkinsPage() {
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">
-            Fire Sale skins (PDF converted)
+            Fire Sale skins
           </h1>
           <p className="mt-2 text-sm text-zinc-500">
-            First load pulls skins from your local PDF, calls COFL monthly median
-            (30-day{" "}
-            <code className="rounded bg-zinc-800 px-1 text-xs">analysis</code>),
-            then stores a local snapshot. Future loads read that snapshot unless
-            you force refresh.
+            Data loads from your local snapshot file. Use price reload buttons to
+            refresh pricing values without rebuilding item rows.
           </p>
         </div>
 
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => void loadRows(false)}
+            onClick={() => void loadRows("snapshot")}
             disabled={running}
             className="rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -83,20 +344,148 @@ export default function FireSaleSkinsPage() {
           </button>
           <button
             type="button"
-            onClick={() => void loadRows(true)}
+            onClick={() => void loadRows("reloadPrices")}
+            disabled={running}
+            className="rounded-lg bg-indigo-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Reload prices
+          </button>
+          <button
+            type="button"
+            onClick={() => void loadRows("reloadOverrides")}
             disabled={running}
             className="rounded-lg bg-zinc-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Rebuild from PDF + COFL
+            Reload overrides
           </button>
-          {rows.length > 0 ? (
-            <span className="text-sm text-zinc-400">{rows.length} rows</span>
+          {filteredRows.length > 0 ? (
+            <span className="text-sm text-zinc-400">{filteredRows.length} rows</span>
           ) : null}
         </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4 text-sm">
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={showOwned}
+                onToggle={() => setShowOwned((v) => !v)}
+                label="Show owned"
+              />
+              Owned
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={showUnowned}
+                onToggle={() => setShowUnowned((v) => !v)}
+                label="Show unowned"
+              />
+              Unowned
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={advancedMode}
+                onToggle={() => setAdvancedMode((v) => !v)}
+                label="Advanced mode"
+              />
+              Advanced mode
+            </label>
+          </div>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search cosmetic..."
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-sky-500 sm:max-w-xs"
+          />
+        </div>
+
+        {advancedMode && availableYears.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-zinc-400">Years:</span>
+            {availableYears.map((year) => (
+              <label key={year} className="inline-flex items-center gap-2">
+                <ToggleSwitch
+                  checked={selectedYears.includes(year)}
+                  onToggle={() => toggleYear(year)}
+                  label={`Toggle year ${year}`}
+                />
+                {year}
+              </label>
+            ))}
+          </div>
+        ) : null}
+        {advancedMode ? (
+          <div className="flex flex-wrap items-center gap-3 text-sm">
+            <span className="text-zinc-400">Skin type:</span>
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={showPetSkins}
+                onToggle={() => setShowPetSkins((v) => !v)}
+                label="Show pet skins"
+              />
+              Pet skins
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={showArmorSkins}
+                onToggle={() => setShowArmorSkins((v) => !v)}
+                label="Show armor skins"
+              />
+              Armor skins
+            </label>
+          </div>
+        ) : null}
         {loaded && generatedAt ? (
           <p className="text-xs text-zinc-500">
             Snapshot: {new Date(generatedAt).toLocaleString()} ({source})
           </p>
+        ) : null}
+
+        {rows.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2">
+              <p className="text-xs text-zinc-400">Total owned</p>
+              <p className="text-lg font-semibold">{ownedRows.length}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2">
+              <p className="text-xs text-zinc-400">Total unowned</p>
+              <p className="text-lg font-semibold">{unownedRows.length}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2">
+              <p className="text-xs text-zinc-400">Owned total value</p>
+              <p className="text-lg font-semibold">{formatCoins(ownedTotal)}</p>
+            </div>
+            <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2">
+              <p className="text-xs text-zinc-400">Unowned total value</p>
+              <p className="text-lg font-semibold">{formatCoins(unownedTotal)}</p>
+            </div>
+          </div>
+        ) : null}
+
+        {advancedMode ? (
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+            <p className="mb-2 text-sm font-medium text-zinc-200">Market Cap</p>
+            <div className="mb-3 flex flex-wrap gap-3 text-sm">
+              <span className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-300">
+                Total: {formatCoins(totalMarketCap)}
+              </span>
+            </div>
+            <p className="mb-2 text-sm font-medium text-zinc-200">Average Coins/Gem by year</p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              {averageCoinsPerGemByYear.map((x) => (
+                <span
+                  key={x.year}
+                  className="rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-zinc-300"
+                >
+                  {x.year}:{" "}
+                  {x.avg != null
+                    ? new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(x.avg)
+                    : "N/A"}{" "}
+                  ({x.count})
+                </span>
+              ))}
+            </div>
+          </div>
         ) : null}
 
         {error ? (
@@ -107,44 +496,166 @@ export default function FireSaleSkinsPage() {
 
         {loaded && !error && rows.length === 0 ? (
           <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-zinc-300">
-            Loaded 0 rows from PDF. Check{" "}
+            Loaded 0 rows from local snapshot. Add rows to{" "}
             <code className="rounded bg-zinc-800 px-1 text-xs">
-              FIRE_SALES_PDF_PATH
+              data/fire-sale-skins-local.json
             </code>{" "}
-            or PDF formatting.
+            and reload.
           </div>
         ) : null}
 
-        {rows.length > 0 ? (
+        {sortedRows.length > 0 ? (
           <div className="overflow-auto rounded-xl border border-zinc-800">
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-900 text-zinc-300">
                 <tr>
-                  <th className="px-3 py-2 text-left">Owned</th>
-                  <th className="px-3 py-2 text-left">Cosmetic</th>
-                  <th className="px-3 py-2 text-left">Date</th>
-                  <th className="px-3 py-2 text-left">Stock</th>
-                  <th className="px-3 py-2 text-right">Sheet price</th>
-                  <th className="px-3 py-2 text-right">COFL monthly median</th>
-                  <th className="px-3 py-2 text-right">Final</th>
-                  <th className="px-3 py-2 text-left">Source</th>
+                  <th className="px-3 py-2 text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("owned")}
+                      className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                    >
+                      Owned
+                      {sortArrowFor("owned")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("cosmetic")}
+                      className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                    >
+                      Cosmetic
+                      {sortArrowFor("cosmetic")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("date")}
+                      className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                    >
+                      Date
+                      {sortArrowFor("date")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-left">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("stock")}
+                      className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                    >
+                      Qty
+                      {sortArrowFor("stock")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("sheetPrice")}
+                      className="inline-flex items-center gap-1 hover:text-zinc-100"
+                    >
+                      Gem cost
+                      {sortArrowFor("sheetPrice")}
+                    </button>
+                  </th>
+                  <th className="px-3 py-2 text-right">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("finalPrice")}
+                      className="inline-flex items-center gap-1 hover:text-zinc-100"
+                    >
+                      Price
+                      {sortArrowFor("finalPrice")}
+                    </button>
+                  </th>
+                  {advancedMode ? (
+                    <>
+                      <th className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("marketCap")}
+                          className="inline-flex items-center gap-1 hover:text-zinc-100"
+                        >
+                          Market Cap
+                          {sortArrowFor("marketCap")}
+                        </button>
+                      </th>
+                      <th className="px-3 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("coinsPerGem")}
+                          className="inline-flex items-center gap-1 hover:text-zinc-100"
+                        >
+                          Coins/Gem
+                          {sortArrowFor("coinsPerGem")}
+                        </button>
+                      </th>
+                      <th className="px-3 py-2 text-left">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("priceSource")}
+                          className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                        >
+                          Source
+                          {sortArrowFor("priceSource")}
+                        </button>
+                      </th>
+                      <th className="px-3 py-2 text-left">
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("skinType")}
+                          className="inline-flex items-center gap-1 text-left hover:text-zinc-100"
+                        >
+                          Type
+                          {sortArrowFor("skinType")}
+                        </button>
+                      </th>
+                    </>
+                  ) : null}
                 </tr>
               </thead>
               <tbody>
-                {rows.map((r) => (
+                {sortedRows.map((r) => (
                   <tr key={`${r.cosmetic}:${r.dateAvailable}`} className="border-t border-zinc-800">
-                    <td className="px-3 py-2">{r.owned ? "Yes" : "No"}</td>
+                    <td className="px-3 py-2">
+                      <ToggleSwitch
+                        checked={r.owned}
+                        onToggle={() => toggleOwned(r)}
+                        label={`Toggle owned for ${r.cosmetic}`}
+                      />
+                    </td>
                     <td className="px-3 py-2">{r.cosmetic}</td>
                     <td className="px-3 py-2">{r.dateAvailable}</td>
                     <td className="px-3 py-2">{r.stock}</td>
                     <td className="px-3 py-2 text-right">{formatCoins(r.sheetPrice)}</td>
                     <td className="px-3 py-2 text-right">
-                      {r.monthlyMedian != null ? formatCoins(r.monthlyMedian) : "N/A"}
+                      {r.finalPrice != null ? formatCoins(r.finalPrice) : "N/A"}
                     </td>
-                    <td className="px-3 py-2 text-right">{formatCoins(r.finalPrice)}</td>
-                    <td className="px-3 py-2">
-                      {r.priceSource === "cofl_monthly_median" ? "COFL median" : "Sheet fallback"}
-                    </td>
+                    {advancedMode ? (
+                      <>
+                        <td className="px-3 py-2 text-right">
+                          {r.finalPrice != null
+                            ? formatCoins(r.finalPrice * Number.parseInt(r.stock, 10))
+                            : "N/A"}
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          {r.finalPrice != null && r.sheetPrice > 0
+                            ? new Intl.NumberFormat("en-US", {
+                                maximumFractionDigits: 2,
+                              }).format(r.finalPrice / r.sheetPrice)
+                            : "N/A"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {r.priceSource === "manual_override"
+                            ? "Manual override"
+                            : r.priceSource === "cofl_monthly_median"
+                              ? "COFL median"
+                              : "Missing"}
+                        </td>
+                        <td className="px-3 py-2 capitalize">{getSkinType(r.cosmetic)}</td>
+                      </>
+                    ) : null}
                   </tr>
                 ))}
               </tbody>

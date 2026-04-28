@@ -1,0 +1,2616 @@
+﻿{
+    "generatedAt":  "2026-04-28T00:44:38.7970361-04:00",
+    "count":  325,
+    "items":  [
+                  {
+                      "cosmetic":  "6th Anniversary Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "6_ANNIVERSARY_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "6_ANNIVERSARY_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Albino Scatha Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SCATHA_ALBINO"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SCATHA_ALBINO"
+                  },
+                  {
+                      "cosmetic":  "Ancient Golden Dragon Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_GOLDEN_DRAGON_ANCIENT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GOLDEN_DRAGON_ANCIENT"
+                  },
+                  {
+                      "cosmetic":  "Anubis Golden Dragon Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_GOLDEN_DRAGON_ANUBIS"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GOLDEN_DRAGON_ANUBIS"
+                  },
+                  {
+                      "cosmetic":  "Armaron Armadillo Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ARMADILLO_ARMARON"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ARMADILLO_ARMARON"
+                  },
+                  {
+                      "cosmetic":  "Astronaut Monkey Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_ASTRONAUT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_ASTRONAUT"
+                  },
+                  {
+                      "cosmetic":  "Aurora Reindeer Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_REINDEER_AURORA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_REINDEER_AURORA"
+                  },
+                  {
+                      "cosmetic":  "Azure Sea Slug Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SLUG_AZURE_SEA_SLUG"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SLUG_AZURE_SEA_SLUG"
+                  },
+                  {
+                      "cosmetic":  "Baby Blue Ender Dragon Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDER_DRAGON_BABY_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDER_DRAGON_BABY_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Baby Emperor Penguin Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_PENGUIN_BABY_EMPEROR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PENGUIN_BABY_EMPEROR"
+                  },
+                  {
+                      "cosmetic":  "Baby Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDER_DRAGON_BABY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDER_DRAGON_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Megalodon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MEGALODON_BABY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MEGALODON_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Seal Backpack Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "BABYSEAL_BACKPACK"
+                                  ],
+                      "primaryItemId":  "BABYSEAL_BACKPACK"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOBLIN_HELMET_BABY",
+                                      "HOLY_BABY",
+                                      "OLD_BABY",
+                                      "PROTECTOR_BABY",
+                                      "STRONG_BABY",
+                                      "SUPERIOR_BABY",
+                                      "UNSTABLE_BABY",
+                                      "WISE_BABY",
+                                      "YOUNG_BABY"
+                                  ],
+                      "primaryItemId":  "GOBLIN_HELMET_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Holy)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "HOLY_BABY"
+                                  ],
+                      "primaryItemId":  "HOLY_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Old)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "OLD_BABY"
+                                  ],
+                      "primaryItemId":  "OLD_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Protector)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PROTECTOR_BABY"
+                                  ],
+                      "primaryItemId":  "PROTECTOR_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Strong)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Superior)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SUPERIOR_BABY"
+                                  ],
+                      "primaryItemId":  "SUPERIOR_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Unstable)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "UNSTABLE_BABY"
+                                  ],
+                      "primaryItemId":  "UNSTABLE_BABY"
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Wise)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Baby Skin (Young)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Bamboo Giraffe Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GIRAFFE_BAMBOO"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GIRAFFE_BAMBOO"
+                  },
+                  {
+                      "cosmetic":  "Banana Slug Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SLUG_BANANA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SLUG_BANANA"
+                  },
+                  {
+                      "cosmetic":  "Beagle Hound Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_HOUND_BEAGLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_HOUND_BEAGLE"
+                  },
+                  {
+                      "cosmetic":  "BeeDazzled Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_BEEDAZZLED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_BEEDAZZLED"
+                  },
+                  {
+                      "cosmetic":  "BeeLoved Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_BEELOVED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_BEELOVED"
+                  },
+                  {
+                      "cosmetic":  "Big Brain Zombie Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ZOMBIE_BIG_BRAIN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ZOMBIE_BIG_BRAIN"
+                  },
+                  {
+                      "cosmetic":  "Black Chick Chicken Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_CHICKEN_CHICK_BLACK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CHICKEN_CHICK_BLACK"
+                  },
+                  {
+                      "cosmetic":  "Black Ice Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Black Lion Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_LION_BLACK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_LION_BLACK"
+                  },
+                  {
+                      "cosmetic":  "Black Plushie Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_BLACK_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_BLACK_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Black Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_BLACK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_BLACK"
+                  },
+                  {
+                      "cosmetic":  "Black Widow Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "TARANTULA_BLACK_WIDOW"
+                                  ],
+                      "primaryItemId":  "TARANTULA_BLACK_WIDOW"
+                  },
+                  {
+                      "cosmetic":  "Black Widow Spider Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SPIDER_BLACK_WIDOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SPIDER_BLACK_WIDOW"
+                  },
+                  {
+                      "cosmetic":  "Black Wooly Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_BLACK_WOOLY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_BLACK_WOOLY"
+                  },
+                  {
+                      "cosmetic":  "Blazing Crimson Helmet Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "BLAZING_CRIMSON"
+                                  ],
+                      "primaryItemId":  "BLAZING_CRIMSON"
+                  },
+                  {
+                      "cosmetic":  "Blizzard Bal Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BAL_BLIZZARD"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BAL_BLIZZARD"
+                  },
+                  {
+                      "cosmetic":  "Bloom Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FERMENTO_BLOOM"
+                                  ],
+                      "primaryItemId":  "FERMENTO_BLOOM"
+                  },
+                  {
+                      "cosmetic":  "Blue Chick Chicken Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_CHICKEN_CHICK_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CHICKEN_CHICK_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Blue Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Blue Moon Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_BLUE_MOON"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_BLUE_MOON"
+                  },
+                  {
+                      "cosmetic":  "Blue Oni Reaper Mask Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "REAPER_BLUE_ONI_MASK"
+                                  ],
+                      "primaryItemId":  "REAPER_BLUE_ONI_MASK"
+                  },
+                  {
+                      "cosmetic":  "Blue Plushie Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_BLUE_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_BLUE_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Blue Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_BLUE",
+                                      "PET_SKIN_SHEEP_LIGHT_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Bone Bat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BAT_BONE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BAT_BONE"
+                  },
+                  {
+                      "cosmetic":  "Brain Freeze Zombie Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ZOMBIE_BRAIN_FREEZE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ZOMBIE_BRAIN_FREEZE"
+                  },
+                  {
+                      "cosmetic":  "Buccaneer Parrot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_PARROT_BUCCANEER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PARROT_BUCCANEER"
+                  },
+                  {
+                      "cosmetic":  "Burning Hedgehog Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_HEDGEHOG_BURNING"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_HEDGEHOG_BURNING"
+                  },
+                  {
+                      "cosmetic":  "Caduceus Mender Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "CADUCEUS_MENDING_CROWN"
+                                  ],
+                      "primaryItemId":  "CADUCEUS_MENDING_CROWN"
+                  },
+                  {
+                      "cosmetic":  "Cake Snail Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SNAIL_CAKE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SNAIL_CAKE"
+                  },
+                  {
+                      "cosmetic":  "Candy Bat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BAT_CANDY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BAT_CANDY"
+                  },
+                  {
+                      "cosmetic":  "Candy Slime Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_CANDY_SLIME_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CANDY_SLIME_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Cardboard Box Black Cat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BLACK_CAT_CARDBOARD_BOX"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLACK_CAT_CARDBOARD_BOX"
+                  },
+                  {
+                      "cosmetic":  "Catgirl Black Cat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_BLACK_CAT_CATGIRL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLACK_CAT_CATGIRL"
+                  },
+                  {
+                      "cosmetic":  "Cavern Glacite Golem Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_GLACITE_GOLEM_CAVERN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GLACITE_GOLEM_CAVERN"
+                  },
+                  {
+                      "cosmetic":  "Celestial Goldor Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOLDOR_CELESTIAL"
+                                  ],
+                      "primaryItemId":  "GOLDOR_CELESTIAL"
+                  },
+                  {
+                      "cosmetic":  "Celestial Maxor Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "MAXOR_CELESTIAL"
+                                  ],
+                      "primaryItemId":  "MAXOR_CELESTIAL"
+                  },
+                  {
+                      "cosmetic":  "Celestial Necron Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "NECRON_CELESTIAL"
+                                  ],
+                      "primaryItemId":  "NECRON_CELESTIAL"
+                  },
+                  {
+                      "cosmetic":  "Celestial Storm Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "STORM_CELESTIAL"
+                                  ],
+                      "primaryItemId":  "STORM_CELESTIAL"
+                  },
+                  {
+                      "cosmetic":  "Celestial Wither Goggles Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "WITHER_GOGGLES_CELESTIAL"
+                                  ],
+                      "primaryItemId":  "WITHER_GOGGLES_CELESTIAL"
+                  },
+                  {
+                      "cosmetic":  "Chaos Terror Helmet Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "CHAOS_TERROR"
+                                  ],
+                      "primaryItemId":  "CHAOS_TERROR"
+                  },
+                  {
+                      "cosmetic":  "Cherry Blossom Mithril Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MITHRIL_GOLEM_CHERRY_BLOSSOM"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MITHRIL_GOLEM_CHERRY_BLOSSOM"
+                  },
+                  {
+                      "cosmetic":  "Cherry Giraffe Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GIRAFFE_CHERRY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GIRAFFE_CHERRY"
+                  },
+                  {
+                      "cosmetic":  "Choco Magma Cube Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MAGMA_CUBE_CHOCO_CUBE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MAGMA_CUBE_CHOCO_CUBE"
+                  },
+                  {
+                      "cosmetic":  "Chroma Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_CHROMA_WOOLY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_CHROMA_WOOLY"
+                  },
+                  {
+                      "cosmetic":  "Chromari Squid Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SQUID_CHROMARI"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SQUID_CHROMARI"
+                  },
+                  {
+                      "cosmetic":  "Cloud Mammoth Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_MAMMOTH_CLOUD"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MAMMOTH_CLOUD"
+                  },
+                  {
+                      "cosmetic":  "Cool Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_COOL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_COOL"
+                  },
+                  {
+                      "cosmetic":  "Copper Mithril Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MITHRIL_GOLEM_COPPER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MITHRIL_GOLEM_COPPER"
+                  },
+                  {
+                      "cosmetic":  "Corrupt Wither Goggles Helmet Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "CORRUPT_WITHER_GOGGLES"
+                                  ],
+                      "primaryItemId":  "CORRUPT_WITHER_GOGGLES"
+                  },
+                  {
+                      "cosmetic":  "Cosmic Blue Whale Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_WHALE_COSMIC"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WHALE_COSMIC"
+                  },
+                  {
+                      "cosmetic":  "Cosmic Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_COSMIC"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_COSMIC"
+                  },
+                  {
+                      "cosmetic":  "Crystal Glacite Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GLACITE_GOLEM_CRYSTAL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GLACITE_GOLEM_CRYSTAL"
+                  },
+                  {
+                      "cosmetic":  "Crystal Mithril Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MITHRIL_GOLEM_CRYSTAL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MITHRIL_GOLEM_CRYSTAL"
+                  },
+                  {
+                      "cosmetic":  "Cute Jellyfish Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_JELLYFISH_CUTE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JELLYFISH_CUTE"
+                  },
+                  {
+                      "cosmetic":  "Cyberpunk Wither Goggles Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "WITHER_GOGGLES_CYBERPUNK"
+                                  ],
+                      "primaryItemId":  "WITHER_GOGGLES_CYBERPUNK"
+                  },
+                  {
+                      "cosmetic":  "Dark Blue Plushie Elephant Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_DARK_BLUE_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_DARK_BLUE_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Dark Green Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_GREEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_GREEN"
+                  },
+                  {
+                      "cosmetic":  "Dark Sasquatch Baby Yeti Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BABY_YETI_DARK_SASQUATCH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BABY_YETI_DARK_SASQUATCH"
+                  },
+                  {
+                      "cosmetic":  "Dark Scatha Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SCATHA_DARK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SCATHA_DARK"
+                  },
+                  {
+                      "cosmetic":  "Dark Wither Skeleton Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_WITHER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WITHER"
+                  },
+                  {
+                      "cosmetic":  "Dark Wolf Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_WOLF"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WOLF"
+                  },
+                  {
+                      "cosmetic":  "Derpy Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_DERP"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_DERP"
+                  },
+                  {
+                      "cosmetic":  "Despair Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_DESPAIR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_DESPAIR"
+                  },
+                  {
+                      "cosmetic":  "Despair Wither Skeleton Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_WITHER_SKELETON_DESPAIR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WITHER_SKELETON_DESPAIR"
+                  },
+                  {
+                      "cosmetic":  "Diamond Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOBLIN_HELMET_DIAMOND"
+                                  ],
+                      "primaryItemId":  "GOBLIN_HELMET_DIAMOND"
+                  },
+                  {
+                      "cosmetic":  "Doge Wolf Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_WOLF_DOGE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WOLF_DOGE"
+                  },
+                  {
+                      "cosmetic":  "Dragon Egg Backpack Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "DRAGON_EGG_BACKPACK"
+                                  ],
+                      "primaryItemId":  "DRAGON_EGG_BACKPACK"
+                  },
+                  {
+                      "cosmetic":  "Elemental Air Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEMENTAL_AIR_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEMENTAL_AIR_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Elemental Earth Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEMENTAL_EARTH_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEMENTAL_EARTH_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Elemental Fire Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEMENTAL_FIRE_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEMENTAL_FIRE_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Elemental Water Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEMENTAL_WATER_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEMENTAL_WATER_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Embarrassed Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_EMBARRASSED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_EMBARRASSED"
+                  },
+                  {
+                      "cosmetic":  "Enchanted Armadillo Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ARMADILLO_ENCHANTED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ARMADILLO_ENCHANTED"
+                  },
+                  {
+                      "cosmetic":  "End Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GOLEM_END"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GOLEM_END"
+                  },
+                  {
+                      "cosmetic":  "Ender Knight Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FINAL_DESTINATION_ENDER_KNIGHT"
+                                  ],
+                      "primaryItemId":  "FINAL_DESTINATION_ENDER_KNIGHT"
+                  },
+                  {
+                      "cosmetic":  "Endercat Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_ENDERCAT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_ENDERCAT"
+                  },
+                  {
+                      "cosmetic":  "Enderpack Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "ENDERPACK"
+                                  ],
+                      "primaryItemId":  "ENDERPACK"
+                  },
+                  {
+                      "cosmetic":  "Fairy Slime Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_FAIRY_SLIME_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_FAIRY_SLIME_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Fenrir Wolf Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_WOLF_FENRIR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WOLF_FENRIR"
+                  },
+                  {
+                      "cosmetic":  "Field Mouse Despair Rat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_FIELD_MOUSE_DESPAIR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_FIELD_MOUSE_DESPAIR"
+                  },
+                  {
+                      "cosmetic":  "Field Mouse Rat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_FIELD_MOUSE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_FIELD_MOUSE"
+                  },
+                  {
+                      "cosmetic":  "Fortified Silverfish Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SILVERFISH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SILVERFISH"
+                  },
+                  {
+                      "cosmetic":  "Fossil T-Rex Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TYRANNOSAURUS_FOSSIL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TYRANNOSAURUS_FOSSIL"
+                  },
+                  {
+                      "cosmetic":  "Fossilized Silverfish Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SILVERFISH_FOSSILIZED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SILVERFISH_FOSSILIZED"
+                  },
+                  {
+                      "cosmetic":  "Four Seasons Griffin Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_FOUR_SEASONS_GRIFFIN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_FOUR_SEASONS_GRIFFIN"
+                  },
+                  {
+                      "cosmetic":  "Fox Hoodie Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "SHARK_SCALE_HOODIE_FOX"
+                                  ],
+                      "primaryItemId":  "SHARK_SCALE_HOODIE_FOX"
+                  },
+                  {
+                      "cosmetic":  "Frost Knight Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FROZEN_BLAZE_FROST_KNIGHT"
+                                  ],
+                      "primaryItemId":  "FROZEN_BLAZE_FROST_KNIGHT"
+                  },
+                  {
+                      "cosmetic":  "Frozen Blaze Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BLAZE_FROZEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLAZE_FROZEN"
+                  },
+                  {
+                      "cosmetic":  "Galaxy Parrot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_PARROT_GALAXY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PARROT_GALAXY"
+                  },
+                  {
+                      "cosmetic":  "Garden Bunny Rabbit Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_RABBIT_GARDEN_BUNNY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RABBIT_GARDEN_BUNNY"
+                  },
+                  {
+                      "cosmetic":  "Gateway Endermite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMITE_GATEWAY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMITE_GATEWAY"
+                  },
+                  {
+                      "cosmetic":  "Gemstone Divan Helmet Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GEMSTONE_DIVAN"
+                                  ],
+                      "primaryItemId":  "GEMSTONE_DIVAN"
+                  },
+                  {
+                      "cosmetic":  "Genie Baby Goblin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GOBLIN_GENIE_BABY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GOBLIN_GENIE_BABY"
+                  },
+                  {
+                      "cosmetic":  "Genie Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOBLIN_HELMET_GENIE"
+                                  ],
+                      "primaryItemId":  "GOBLIN_HELMET_GENIE"
+                  },
+                  {
+                      "cosmetic":  "Glacial Hedgehog Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_HEDGEHOG_GLACIAL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_HEDGEHOG_GLACIAL"
+                  },
+                  {
+                      "cosmetic":  "Glacite Palace Greenhouse Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GLACITE_PALACE_GREENHOUSE_SKIN"
+                                  ],
+                      "primaryItemId":  "GLACITE_PALACE_GREENHOUSE_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Glow Squid Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SQUID_GLOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SQUID_GLOW"
+                  },
+                  {
+                      "cosmetic":  "Gold Macaw Parrot Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_PARROT_GOLD_MACAW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PARROT_GOLD_MACAW"
+                  },
+                  {
+                      "cosmetic":  "Golden Ancient Turtle Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TURTLE_ANCIENT_GOLDEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TURTLE_ANCIENT_GOLDEN"
+                  },
+                  {
+                      "cosmetic":  "Golden Monkey Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_GOLDEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_GOLDEN"
+                  },
+                  {
+                      "cosmetic":  "Golden Scatha Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SCATHA_GOLDEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SCATHA_GOLDEN"
+                  },
+                  {
+                      "cosmetic":  "Golden Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOBLIN_HELMET_GOLDEN"
+                                  ],
+                      "primaryItemId":  "GOBLIN_HELMET_GOLDEN"
+                  },
+                  {
+                      "cosmetic":  "Golden Tiger Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TIGER_GOLDEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TIGER_GOLDEN"
+                  },
+                  {
+                      "cosmetic":  "Golden Turtle Egg Power Orb Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOLDEN_ANCIENT_EGG_FLUX"
+                                  ],
+                      "primaryItemId":  "GOLDEN_ANCIENT_EGG_FLUX"
+                  },
+                  {
+                      "cosmetic":  "Gorilla Monkey Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_GORILLA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_GORILLA"
+                  },
+                  {
+                      "cosmetic":  "Gray Plushie Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_GRAY_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_GRAY_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Gray Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_GRAY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_GRAY"
+                  },
+                  {
+                      "cosmetic":  "Great Gats Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_GREAT_GATSBEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_GREAT_GATSBEE"
+                  },
+                  {
+                      "cosmetic":  "Great Shark Magma Lord Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "GREAT_SHARK_MAGMA_LORD"
+                                  ],
+                      "primaryItemId":  "GREAT_SHARK_MAGMA_LORD"
+                  },
+                  {
+                      "cosmetic":  "Green Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_GREEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_GREEN"
+                  },
+                  {
+                      "cosmetic":  "Green Elf Jerry Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JERRY_GREEN_ELF"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JERRY_GREEN_ELF"
+                  },
+                  {
+                      "cosmetic":  "Green Snubfin Dolphin Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_DOLPHIN_SNUBNOSE_GREEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DOLPHIN_SNUBNOSE_GREEN"
+                  },
+                  {
+                      "cosmetic":  "Greenbottle Tarantula Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TARANTULA_GREENBOTTLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TARANTULA_GREENBOTTLE"
+                  },
+                  {
+                      "cosmetic":  "Grown-up Baby Yeti Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_YETI_GROWN_UP"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_YETI_GROWN_UP"
+                  },
+                  {
+                      "cosmetic":  "Gummy Worm Scatha Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SCATHA_GUMMY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SCATHA_GUMMY"
+                  },
+                  {
+                      "cosmetic":  "Gym Rat Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_GYM_RAT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_GYM_RAT"
+                  },
+                  {
+                      "cosmetic":  "Handsome Jerry Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JERRY_HANDSOME"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JERRY_HANDSOME"
+                  },
+                  {
+                      "cosmetic":  "Harlequin Flying Fish Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_FLYING_FISH_HARLEQUIN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_FLYING_FISH_HARLEQUIN"
+                  },
+                  {
+                      "cosmetic":  "Harvester Helmet Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FERMENTO_ULTIMATE"
+                                  ],
+                      "primaryItemId":  "FERMENTO_ULTIMATE"
+                  },
+                  {
+                      "cosmetic":  "Hermit Baked Beans Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_HERMIT_BAKED_BEANS"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_HERMIT_BAKED_BEANS"
+                  },
+                  {
+                      "cosmetic":  "Hermit Beach Ball Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_HERMIT_BEACH_BALL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_HERMIT_BEACH_BALL"
+                  },
+                  {
+                      "cosmetic":  "Hermit Graphite Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_HERMIT_GRAPHITE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_HERMIT_GRAPHITE"
+                  },
+                  {
+                      "cosmetic":  "Hermit Paua Shell Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_HERMIT_PAUA_SHELL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_HERMIT_PAUA_SHELL"
+                  },
+                  {
+                      "cosmetic":  "Hermit Sand Castle Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_HERMIT_SAND_CASTLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_HERMIT_SAND_CASTLE"
+                  },
+                  {
+                      "cosmetic":  "Hive Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_HIVE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_HIVE"
+                  },
+                  {
+                      "cosmetic":  "Honey Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_HONEY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_HONEY"
+                  },
+                  {
+                      "cosmetic":  "Husky Wolf Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_WOLF_HUSKY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WOLF_HUSKY"
+                  },
+                  {
+                      "cosmetic":  "Ice Golem Snowman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SNOWMAN_ICE_GOLEM"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SNOWMAN_ICE_GOLEM"
+                  },
+                  {
+                      "cosmetic":  "Ice Phoenix Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_PHOENIX_ICE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PHOENIX_ICE"
+                  },
+                  {
+                      "cosmetic":  "Icicle Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FROZEN_BLAZE_ICICLE"
+                                  ],
+                      "primaryItemId":  "FROZEN_BLAZE_ICICLE"
+                  },
+                  {
+                      "cosmetic":  "Inferno Bal Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BAL_INFERNO"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BAL_INFERNO"
+                  },
+                  {
+                      "cosmetic":  "Ivory Black Cat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_BLACK_CAT_IVORY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLACK_CAT_IVORY"
+                  },
+                  {
+                      "cosmetic":  "Jerry Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "JERRY_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "JERRY_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Jester Bonzo\u0027s Mask Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "BONZO_MASK_JESTER"
+                                  ],
+                      "primaryItemId":  "BONZO_MASK_JESTER"
+                  },
+                  {
+                      "cosmetic":  "Jinn Goblin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GOBLIN_JINN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GOBLIN_JINN"
+                  },
+                  {
+                      "cosmetic":  "Jungle Ocelot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_OCELOT_JUNGLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_OCELOT_JUNGLE"
+                  },
+                  {
+                      "cosmetic":  "Junk Rat Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_JUNK_RAT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_JUNK_RAT"
+                  },
+                  {
+                      "cosmetic":  "KaRate Rat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_KARATE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_KARATE"
+                  },
+                  {
+                      "cosmetic":  "Laughing Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_LAUGH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_LAUGH"
+                  },
+                  {
+                      "cosmetic":  "Leaf Sheep Sea Slug Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SLUG_LEAF_SHEEP_SEA_SLUG"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SLUG_LEAF_SHEEP_SEA_SLUG"
+                  },
+                  {
+                      "cosmetic":  "Leaf Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "FERMENTO_LEAF"
+                                  ],
+                      "primaryItemId":  "FERMENTO_LEAF"
+                  },
+                  {
+                      "cosmetic":  "Lemur Monkey Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_LEMUR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_LEMUR"
+                  },
+                  {
+                      "cosmetic":  "Leprechaun Jerry Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JERRY_LEPRECHAUN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JERRY_LEPRECHAUN"
+                  },
+                  {
+                      "cosmetic":  "Light Blue Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Light Green Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Light Sasquatch Baby Yeti Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_BABY_YETI_LIGHT_SASQUATCH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BABY_YETI_LIGHT_SASQUATCH"
+                  },
+                  {
+                      "cosmetic":  "Lion Tamarin Monkey Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_LION_TAMARIN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_LION_TAMARIN"
+                  },
+                  {
+                      "cosmetic":  "Lioness Lion Skin",
+                      "owned":  true,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Loafed Black Cat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BLACK_CAT_LOAF_CAT_BLACK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLACK_CAT_LOAF_CAT_BLACK"
+                  },
+                  {
+                      "cosmetic":  "Loafed Tiger Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_TIGER_LOAF_CAT_ORANGE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TIGER_LOAF_CAT_ORANGE"
+                  },
+                  {
+                      "cosmetic":  "Loyalty Kuudra Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_KUUDRA_LOYALTY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_KUUDRA_LOYALTY"
+                  },
+                  {
+                      "cosmetic":  "Luminescent Jellyfish Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JELLYFISH_LUMINESCENT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JELLYFISH_LUMINESCENT"
+                  },
+                  {
+                      "cosmetic":  "Lunar Rabbit Hat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "LUNAR_RABBIT_HAT"
+                                  ],
+                      "primaryItemId":  "LUNAR_RABBIT_HAT"
+                  },
+                  {
+                      "cosmetic":  "Lunar Rabbit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RABBIT_LUNAR"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RABBIT_LUNAR"
+                  },
+                  {
+                      "cosmetic":  "Magic Cube Power Orb Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "MAGIC_CUBE_FLUX"
+                                  ],
+                      "primaryItemId":  "MAGIC_CUBE_FLUX"
+                  },
+                  {
+                      "cosmetic":  "Magma Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_MAGMA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_MAGMA"
+                  },
+                  {
+                      "cosmetic":  "Melting Snowman Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SNOWMAN_MELTING"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SNOWMAN_MELTING"
+                  },
+                  {
+                      "cosmetic":  "Meteor Magma Lord Helmet Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "METEOR_MAGMA_LORD"
+                                  ],
+                      "primaryItemId":  "METEOR_MAGMA_LORD"
+                  },
+                  {
+                      "cosmetic":  "Midnight Baby Yeti Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BABY_YETI_MIDNIGHT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BABY_YETI_MIDNIGHT"
+                  },
+                  {
+                      "cosmetic":  "Midnight Dolphin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DOLPHIN_MIDNIGHT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DOLPHIN_MIDNIGHT"
+                  },
+                  {
+                      "cosmetic":  "Miner Mole Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MOLE_MINER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MOLE_MINER"
+                  },
+                  {
+                      "cosmetic":  "Molten Glacite Golem Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GLACITE_GOLEM_MOLTEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GLACITE_GOLEM_MOLTEN"
+                  },
+                  {
+                      "cosmetic":  "Monochrome Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_MONOCHROME"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_MONOCHROME"
+                  },
+                  {
+                      "cosmetic":  "Monster Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_MONSTER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_MONSTER"
+                  },
+                  {
+                      "cosmetic":  "Moonbloom Mooshroom Cow Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MOOSHROOM_COW_MOONBLOOM"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MOOSHROOM_COW_MOONBLOOM"
+                  },
+                  {
+                      "cosmetic":  "Mr Claws Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_MR_CLAWS"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_MR_CLAWS"
+                  },
+                  {
+                      "cosmetic":  "Mummy Jerry Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JERRY_MUMMY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JERRY_MUMMY"
+                  },
+                  {
+                      "cosmetic":  "Mushroom Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "MUSHROOM_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "MUSHROOM_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Natural Ammonite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_AMMONITE_NATURAL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_AMMONITE_NATURAL"
+                  },
+                  {
+                      "cosmetic":  "Nebula Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_NEBULA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_NEBULA"
+                  },
+                  {
+                      "cosmetic":  "Neon Blue Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DRAGON_NEON_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DRAGON_NEON_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Neon Blue Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_NEON_BLUE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_NEON_BLUE"
+                  },
+                  {
+                      "cosmetic":  "Neon Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_NEON"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_NEON"
+                  },
+                  {
+                      "cosmetic":  "Neon Green Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_NEON_GREEN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_NEON_GREEN"
+                  },
+                  {
+                      "cosmetic":  "Neon Purple Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DRAGON_NEON_PURPLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DRAGON_NEON_PURPLE"
+                  },
+                  {
+                      "cosmetic":  "Neon Red Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DRAGON_NEON_RED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DRAGON_NEON_RED"
+                  },
+                  {
+                      "cosmetic":  "Neon Red Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_NEON_RED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_NEON_RED"
+                  },
+                  {
+                      "cosmetic":  "Neon Tiger Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TIGER_NEON"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TIGER_NEON"
+                  },
+                  {
+                      "cosmetic":  "Neon Yellow Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_NEON_YELLOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_NEON_YELLOW"
+                  },
+                  {
+                      "cosmetic":  "Ninja Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_NINJA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_NINJA"
+                  },
+                  {
+                      "cosmetic":  "Oculus Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PRECURSOR_EYE_OCULUS"
+                                  ],
+                      "primaryItemId":  "PRECURSOR_EYE_OCULUS"
+                  },
+                  {
+                      "cosmetic":  "Oni Reaper Mask Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "REAPER_ONI_MASK"
+                                  ],
+                      "primaryItemId":  "REAPER_ONI_MASK"
+                  },
+                  {
+                      "cosmetic":  "Onyx Black Cat Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_BLACK_CAT_ONYX"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BLACK_CAT_ONYX"
+                  },
+                  {
+                      "cosmetic":  "Onyx Plush Baby Yeti Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BABY_YETI_DARK_PLUSH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BABY_YETI_DARK_PLUSH"
+                  },
+                  {
+                      "cosmetic":  "Orange Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_ORANGE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_ORANGE"
+                  },
+                  {
+                      "cosmetic":  "Orange Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_ORANGE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_ORANGE"
+                  },
+                  {
+                      "cosmetic":  "Orca Blue Whale Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_WHALE_ORCA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WHALE_ORCA"
+                  },
+                  {
+                      "cosmetic":  "Panda Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PANDA_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PANDA_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Panther Ocelot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_OCELOT_PANTHER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_OCELOT_PANTHER"
+                  },
+                  {
+                      "cosmetic":  "Pastel Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DRAGON_PASTEL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DRAGON_PASTEL"
+                  },
+                  {
+                      "cosmetic":  "Peacock Spider Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SPIDER_PEACOCK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SPIDER_PEACOCK"
+                  },
+                  {
+                      "cosmetic":  "Penguin Backpack Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PENGUIN_BACKPACK"
+                                  ],
+                      "primaryItemId":  "PENGUIN_BACKPACK"
+                  },
+                  {
+                      "cosmetic":  "Penguin Hoodie Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "SHARK_SCALE_HOODIE_PENGUIN"
+                                  ],
+                      "primaryItemId":  "SHARK_SCALE_HOODIE_PENGUIN"
+                  },
+                  {
+                      "cosmetic":  "Pina Coolada Barn Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PINA_COOLADA_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "PINA_COOLADA_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Pink Chick Chicken Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_CHICKEN_CHICK_PINK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CHICKEN_CHICK_PINK"
+                  },
+                  {
+                      "cosmetic":  "Pink Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_PINK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_PINK"
+                  },
+                  {
+                      "cosmetic":  "Pink Plushie Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_PINK_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_PINK_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Pink Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_PINK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_PINK"
+                  },
+                  {
+                      "cosmetic":  "Pink Tarantula Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TARANTULA_PINK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TARANTULA_PINK"
+                  },
+                  {
+                      "cosmetic":  "Pinwheel House Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PINWHEEL_HOUSE_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "PINWHEEL_HOUSE_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Pirate Bomb Power Orb Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PIRATE_BOMB_FLUX"
+                                  ],
+                      "primaryItemId":  "PIRATE_BOMB_FLUX"
+                  },
+                  {
+                      "cosmetic":  "PiRate Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_PIRATE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_PIRATE"
+                  },
+                  {
+                      "cosmetic":  "Plushie Baby Yeti Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BABY_YETI_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BABY_YETI_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Plushie Lion Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_LION_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_LION_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Plushie Rabbit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RABBIT_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RABBIT_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Plushie Reindeer Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_REINDEER_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_REINDEER_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Plushie Snowman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SNOWMAN_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SNOWMAN_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Pretty Rabbit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RABBIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RABBIT"
+                  },
+                  {
+                      "cosmetic":  "Puffer Fish Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "DIVER_PUFFER"
+                                  ],
+                      "primaryItemId":  "DIVER_PUFFER"
+                  },
+                  {
+                      "cosmetic":  "Puppy Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "MASTIFF_PUPPY"
+                                  ],
+                      "primaryItemId":  "MASTIFF_PUPPY"
+                  },
+                  {
+                      "cosmetic":  "Purple Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_PURPLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_PURPLE"
+                  },
+                  {
+                      "cosmetic":  "Purple Plushie Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_PURPLE_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_PURPLE_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Purple Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_PURPLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_PURPLE"
+                  },
+                  {
+                      "cosmetic":  "Purple Snubfin Dolphin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DOLPHIN_SNUBNOSE_PURPLE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DOLPHIN_SNUBNOSE_PURPLE"
+                  },
+                  {
+                      "cosmetic":  "Radiant Endermite Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMITE_RADIANT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMITE_RADIANT"
+                  },
+                  {
+                      "cosmetic":  "Rainbow Snail Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SNAIL_RAINBOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SNAIL_RAINBOW"
+                  },
+                  {
+                      "cosmetic":  "Rat-stronaut Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_RAT-STRONAUT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_RAT-STRONAUT"
+                  },
+                  {
+                      "cosmetic":  "Real Grandma Wolf Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GRANDMA_WOLF_REAL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GRANDMA_WOLF_REAL"
+                  },
+                  {
+                      "cosmetic":  "Red Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_RED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_RED"
+                  },
+                  {
+                      "cosmetic":  "Red Elf Jerry Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_JERRY_RED_ELF"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_JERRY_RED_ELF"
+                  },
+                  {
+                      "cosmetic":  "Red Oni Reaper Mask Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "REAPER_RED_ONI_MASK"
+                                  ],
+                      "primaryItemId":  "REAPER_RED_ONI_MASK"
+                  },
+                  {
+                      "cosmetic":  "Red Panda Ocelot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_OCELOT_RED_PANDA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_OCELOT_RED_PANDA"
+                  },
+                  {
+                      "cosmetic":  "Red Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_RED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_RED"
+                  },
+                  {
+                      "cosmetic":  "Red Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "BIOHAZARD_SPACE_RED"
+                                  ],
+                      "primaryItemId":  "BIOHAZARD_SPACE_RED"
+                  },
+                  {
+                      "cosmetic":  "Red Snubfin Dolphin Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_DOLPHIN_SNUBNOSE_RED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DOLPHIN_SNUBNOSE_RED"
+                  },
+                  {
+                      "cosmetic":  "Redback Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "TARANTULA_REDBACK"
+                                  ],
+                      "primaryItemId":  "TARANTULA_REDBACK"
+                  },
+                  {
+                      "cosmetic":  "Reindeer Backpack Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "REINDEER_BACKPACK"
+                                  ],
+                      "primaryItemId":  "REINDEER_BACKPACK"
+                  },
+                  {
+                      "cosmetic":  "Reindrake Griffin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GRIFFIN_REINDRAKE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GRIFFIN_REINDRAKE"
+                  },
+                  {
+                      "cosmetic":  "Reinforced Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PERFECT_FORGE"
+                                  ],
+                      "primaryItemId":  "PERFECT_FORGE"
+                  },
+                  {
+                      "cosmetic":  "RGBee Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_RGBEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_RGBEE"
+                  },
+                  {
+                      "cosmetic":  "Rubber Chicken Chicken Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_CHICKEN_RUBBER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CHICKEN_RUBBER"
+                  },
+                  {
+                      "cosmetic":  "RugBee Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_RUGBEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_RUGBEE"
+                  },
+                  {
+                      "cosmetic":  "Saber-Tooth Tiger Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TIGER_SABER_TOOTH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TIGER_SABER_TOOTH"
+                  },
+                  {
+                      "cosmetic":  "Safari Elephant Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_SAFARI"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_SAFARI"
+                  },
+                  {
+                      "cosmetic":  "Safari Giraffe Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GIRAFFE_SAFARI"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GIRAFFE_SAFARI"
+                  },
+                  {
+                      "cosmetic":  "Sand Castle Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SAND_CASTLE_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "SAND_CASTLE_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Sandstorm Cat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "BERSERKER_SANDSTORM_CAT"
+                                  ],
+                      "primaryItemId":  "BERSERKER_SANDSTORM_CAT"
+                  },
+                  {
+                      "cosmetic":  "Seafoam Armadillo Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ARMADILLO_SEAFOAM"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ARMADILLO_SEAFOAM"
+                  },
+                  {
+                      "cosmetic":  "Seagull Phoenix Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_PHOENIX_SEAGULL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_PHOENIX_SEAGULL"
+                  },
+                  {
+                      "cosmetic":  "Seal Hoodie Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "SecRat Service Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_SECRAT_SERVICE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_SECRAT_SERVICE"
+                  },
+                  {
+                      "cosmetic":  "SecuRaty Guard Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_SECURATY_GUARD"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_SECURATY_GUARD"
+                  },
+                  {
+                      "cosmetic":  "See, Hear, Speak Monkey Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MONKEY_SEE_HEAR_SPEAK"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MONKEY_SEE_HEAR_SPEAK"
+                  },
+                  {
+                      "cosmetic":  "Sentinel Warden Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SENTINEL_WARDEN"
+                                  ],
+                      "primaryItemId":  "SENTINEL_WARDEN"
+                  },
+                  {
+                      "cosmetic":  "Sentinel Zombie Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ZOMBIE_SENTINEL"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ZOMBIE_SENTINEL"
+                  },
+                  {
+                      "cosmetic":  "Shell Shulked Turtle Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_TURTLE_SHELL_SHULKED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TURTLE_SHELL_SHULKED"
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Holy)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Old)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Protector)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PROTECTOR_SHIMMER"
+                                  ],
+                      "primaryItemId":  "PROTECTOR_SHIMMER"
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Strong)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "STRONG_SHIMMER"
+                                  ],
+                      "primaryItemId":  "STRONG_SHIMMER"
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Superior)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SUPERIOR_SHIMMER"
+                                  ],
+                      "primaryItemId":  "SUPERIOR_SHIMMER"
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Unstable)",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Wise)",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "WISE_SHIMMER"
+                                  ],
+                      "primaryItemId":  "WISE_SHIMMER"
+                  },
+                  {
+                      "cosmetic":  "Shimmer Skin (Young)",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "YOUNG_SHIMMER"
+                                  ],
+                      "primaryItemId":  "YOUNG_SHIMMER"
+                  },
+                  {
+                      "cosmetic":  "Silbrrrfish Silverfish Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SILVERFISH_SILBRRRFISH"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SILVERFISH_SILBRRRFISH"
+                  },
+                  {
+                      "cosmetic":  "Sly Fox Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SHADOW_ASSASSIN_SLY_FOX"
+                                  ],
+                      "primaryItemId":  "SHADOW_ASSASSIN_SLY_FOX"
+                  },
+                  {
+                      "cosmetic":  "Smiling Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_SMILE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_SMILE"
+                  },
+                  {
+                      "cosmetic":  "Snow Crow Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_CROW_SNOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CROW_SNOW"
+                  },
+                  {
+                      "cosmetic":  "Snow Tiger Ocelot Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_OCELOT_SNOW_TIGER"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_OCELOT_SNOW_TIGER"
+                  },
+                  {
+                      "cosmetic":  "Snowflake Skin",
+                      "owned":  true,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Snowglobe Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "SNOW_SNOWGLOBE"
+                                  ],
+                      "primaryItemId":  "SNOW_SNOWGLOBE"
+                  },
+                  {
+                      "cosmetic":  "Snubfin Dolphin Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_DOLPHIN_SNUBFIN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_DOLPHIN_SNUBFIN"
+                  },
+                  {
+                      "cosmetic":  "Sorrowful Samurai Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Space Kitty Black Cat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_CAT_SPACE_KITTY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CAT_SPACE_KITTY"
+                  },
+                  {
+                      "cosmetic":  "Spectre Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "REAPER_SPECTRE"
+                                  ],
+                      "primaryItemId":  "REAPER_SPECTRE"
+                  },
+                  {
+                      "cosmetic":  "Spelling Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_SPELLING_BEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_SPELLING_BEE"
+                  },
+                  {
+                      "cosmetic":  "Spirit Orca Blue Whale Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_WHALE_SPIRIT_ORCA"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_WHALE_SPIRIT_ORCA"
+                  },
+                  {
+                      "cosmetic":  "Spirit Plushie Lion Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_LION_PLUSHIE_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_LION_PLUSHIE_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Spirit Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_LION_PLUSHIE_SPIRIT",
+                                      "REAPER_SPIRIT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_LION_PLUSHIE_SPIRIT"
+                  },
+                  {
+                      "cosmetic":  "Spooky Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN"
+                  },
+                  {
+                      "cosmetic":  "Squeakheart Rat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_RAT_SQUEAKHEART"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_RAT_SQUEAKHEART"
+                  },
+                  {
+                      "cosmetic":  "Strawberry Hedgehog Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_HEDGEHOG_STRAWBERRY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_HEDGEHOG_STRAWBERRY"
+                  },
+                  {
+                      "cosmetic":  "Sun Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_SUN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_SUN"
+                  },
+                  {
+                      "cosmetic":  "Teal Plushie Elephant Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_TEAL_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_TEAL_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "Teal Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "The End Barn Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "END_BARN_SKIN"
+                                  ],
+                      "primaryItemId":  "END_BARN_SKIN"
+                  },
+                  {
+                      "cosmetic":  "Thief Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "GOBLIN_HELMET_THIEF"
+                                  ],
+                      "primaryItemId":  "GOBLIN_HELMET_THIEF"
+                  },
+                  {
+                      "cosmetic":  "Thinking Rock Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ROCK_THINKING"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ROCK_THINKING"
+                  },
+                  {
+                      "cosmetic":  "Thunder Aqua Biker Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "THUNDER_BIKER_AQUA"
+                                  ],
+                      "primaryItemId":  "THUNDER_BIKER_AQUA"
+                  },
+                  {
+                      "cosmetic":  "Thunder Azure Biker Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Thunder Black Biker Skin",
+                      "owned":  true,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "Thunder Pink Biker Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "THUNDER_BIKER_PINK"
+                                  ],
+                      "primaryItemId":  "THUNDER_BIKER_PINK"
+                  },
+                  {
+                      "cosmetic":  "Thunder Teal Biker Skin",
+                      "owned":  false,
+                      "itemIds":  [
+
+                                  ],
+                      "primaryItemId":  null
+                  },
+                  {
+                      "cosmetic":  "True Warden Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "TRUE_WARDEN"
+                                  ],
+                      "primaryItemId":  "TRUE_WARDEN"
+                  },
+                  {
+                      "cosmetic":  "Turkey Chicken Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_CHICKEN_TURKEY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_CHICKEN_TURKEY"
+                  },
+                  {
+                      "cosmetic":  "Twilight Tiger Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_TIGER_TWILIGHT"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_TIGER_TWILIGHT"
+                  },
+                  {
+                      "cosmetic":  "Undead Ender Dragon Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDER_DRAGON_UNDEAD"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDER_DRAGON_UNDEAD"
+                  },
+                  {
+                      "cosmetic":  "USBee Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_USB"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_USB"
+                  },
+                  {
+                      "cosmetic":  "Vampire Bat Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BAT_VAMPIRE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BAT_VAMPIRE"
+                  },
+                  {
+                      "cosmetic":  "Violet Sea Slug Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SLUG_VIOLET_SEA_SLUG"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SLUG_VIOLET_SEA_SLUG"
+                  },
+                  {
+                      "cosmetic":  "Void Mammoth Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_MAMMOTH_VOID"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_MAMMOTH_VOID"
+                  },
+                  {
+                      "cosmetic":  "Wanna Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_WANNA_BEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_WANNA_BEE"
+                  },
+                  {
+                      "cosmetic":  "Warped Giraffe Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GIRAFFE_WARPED"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GIRAFFE_WARPED"
+                  },
+                  {
+                      "cosmetic":  "WasaBee Bee Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_BEE_WASABEE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_BEE_WASABEE"
+                  },
+                  {
+                      "cosmetic":  "Watcher Guardian Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_GUARDIAN"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_GUARDIAN"
+                  },
+                  {
+                      "cosmetic":  "White Lion Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_LION_WHITE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_LION_WHITE"
+                  },
+                  {
+                      "cosmetic":  "White Plushie Elephant Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_ELEPHANT_WHITE_PLUSHIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ELEPHANT_WHITE_PLUSHIE"
+                  },
+                  {
+                      "cosmetic":  "White Sheep Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_WHITE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_WHITE"
+                  },
+                  {
+                      "cosmetic":  "White Wooly Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_WHITE_WOOLY"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_WHITE_WOOLY"
+                  },
+                  {
+                      "cosmetic":  "Xenon Enderman Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_ENDERMAN_XENON"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_ENDERMAN_XENON"
+                  },
+                  {
+                      "cosmetic":  "Yellow Sheep Skin",
+                      "owned":  true,
+                      "itemIds":  [
+                                      "PET_SKIN_SHEEP_YELLOW"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_SHEEP_YELLOW"
+                  },
+                  {
+                      "cosmetic":  "Yellow Space Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "BIOHAZARD_SPACE_YELLOW"
+                                  ],
+                      "primaryItemId":  "BIOHAZARD_SPACE_YELLOW"
+                  },
+                  {
+                      "cosmetic":  "Zombie Skeleton Horse Skin",
+                      "owned":  false,
+                      "itemIds":  [
+                                      "PET_SKIN_HORSE_ZOMBIE"
+                                  ],
+                      "primaryItemId":  "PET_SKIN_HORSE_ZOMBIE"
+                  }
+              ]
+}

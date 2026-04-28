@@ -1,12 +1,15 @@
 import { readFile } from "node:fs/promises";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import pdf from "pdf-parse/lib/pdf-parse.js";
+import pdf from "pdf-parse/lib/pdf-parse";
 import { getCached, setCached } from "./cache";
 
 const PDF_CACHE_MS = 5 * 60_000;
 const COFL_CACHE_MS = 60 * 60_000;
+const COFL_MEDIAN_CACHE_MS = 7 * 24 * 60 * 60_000;
+const COFL_MISS_CACHE_MS = 2 * 60_000;
 const COFL_TIMEOUT_MS = 15_000;
+const COFL_RETRY_DELAY_MS = 350;
 
 const DEFAULT_FIRE_SALE_PDF_PATH =
   "C:\\Users\\alexl\\Downloads\\Mansif Skins - Fire Sales.pdf";
@@ -23,8 +26,37 @@ export type FireSaleSkinRow = {
 export type FireSaleSkinPriceRow = FireSaleSkinRow & {
   coflTag: string | null;
   monthlyMedian: number | null;
-  finalPrice: number;
-  priceSource: "cofl_monthly_median" | "sheet";
+  finalPrice: number | null;
+  priceSource: "manual_override" | "cofl_monthly_median" | "missing";
+};
+
+const MANUAL_PRICE_OVERRIDES: Record<string, number> = {
+  "Derpy Rock Skin": 8_000_000_000,
+  "Embarrassed Rock Skin": 9_000_000_000,
+  "Smiling Rock Skin": 3_500_000_000,
+  "Laughing Rock Skin": 12_000_000_000,
+  "Thinking Rock Skin": 6_000_000_000,
+  "Shimmer Skin (Unstable)": 500_000_000,
+  "Shimmer Skin (Holy)": 500_000_000,
+  "Shimmer Skin (Old)": 500_000_000,
+  "Neon Yellow Sheep Skin": 1_500_000_000,
+  "Neon Red Sheep Skin": 1_500_000_000,
+  "Neon Green Sheep Skin": 1_400_000_000,
+  "Neon Blue Sheep Skin": 2_000_000_000,
+  "Pink Elephant Skin": 2_000_000_000,
+  "Blue Elephant Skin": 2_000_000_000,
+  "Orange Elephant Skin": 2_000_000_000,
+  "Baby Skin (Wise)": 5_000_000_000,
+  "Baby Skin (Young)": 4_000_000_000,
+  "Baby Skin (Strong)": 3_000_000_000,
+  "Red Elf Jerry Skin": 2_000_000_000,
+  "Green Elf Jerry Skin": 2_000_000_000,
+  "White Sheep Skin": 4_600_000_000,
+  "Light Blue Sheep Skin": 7_100_000_000,
+  "Light Green Sheep Skin": 5_800_000_000,
+  "Purple Sheep Skin": 7_250_000_000,
+  "Pink Sheep Skin": 9_600_000_000,
+  "Black Sheep Skin": 13_500_000_000,
 };
 
 export type FireSaleSkinSnapshot = {
@@ -48,6 +80,14 @@ type CoflMonthlyHistoryPoint = {
   volume?: number;
 };
 
+function normalizeCosmeticName(name: string): string {
+  const overrides: Record<string, string> = {
+    "Teal Skin": "Teal Space Skin",
+    "Red Skin": "Red Space Skin",
+  };
+  return overrides[name] ?? name;
+}
+
 function getManualCoflTags(name: string): string[] {
   const direct: Record<string, string[]> = {
     "Warped Giraffe Skin": ["PET_SKIN_GIRAFFE_WARPED"],
@@ -58,6 +98,7 @@ function getManualCoflTags(name: string): string[] {
     "Celestial Storm Skin": ["STORM_CELESTIAL"],
     "Light Green Sheep Skin": ["PET_SKIN_SHEEP_LIGHT_GREEN"],
     "Light Blue Sheep Skin": ["PET_SKIN_SHEEP_LIGHT_BLUE", "PET_SKIN_SHEEP_BLUE"],
+    "Blue Sheep Skin": ["PET_SKIN_SHEEP_BLUE", "PET_SKIN_SHEEP_LIGHT_BLUE"],
     "Pretty Rabbit Skin": ["PET_SKIN_RABBIT"],
   };
   if (direct[name]) return direct[name];
@@ -91,17 +132,34 @@ async function loadCoflItemsCatalog(): Promise<CoflItemMetadata[]> {
 }
 
 async function fetchJsonWithTimeout<T>(url: string): Promise<T | null> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), COFL_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, { cache: "no-store", signal: controller.signal });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timeout);
+  const attempts = 4;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), COFL_TIMEOUT_MS);
+    try {
+      const res = await fetch(url, { cache: "no-store", signal: controller.signal });
+      if (!res.ok) {
+        const retryableStatus =
+          res.status >= 500 || res.status === 429 || res.status === 403;
+        if (attempt < attempts && retryableStatus) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, COFL_RETRY_DELAY_MS * attempt)
+          );
+          continue;
+        }
+        return null;
+      }
+      return (await res.json()) as T;
+    } catch {
+      if (attempt >= attempts) return null;
+      await new Promise((resolve) =>
+        setTimeout(resolve, COFL_RETRY_DELAY_MS * attempt)
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  return null;
 }
 
 function parseSheetPrice(value: string): number | null {
@@ -149,7 +207,7 @@ function parseSkinRows(text: string): FireSaleSkinRow[] {
     }
 
     const body = lines[i + 1] ?? "";
-    if (!body.includes("Skin")) {
+    if (!body.includes("Skin") && !body.includes("Rune")) {
       continue;
     }
     const parts = body.match(
@@ -157,7 +215,7 @@ function parseSkinRows(text: string): FireSaleSkinRow[] {
     );
     if (!parts) continue;
 
-    const cosmetic = parts[1].trim();
+    const cosmetic = normalizeCosmeticName(parts[1].trim());
     const year = Number.parseInt(parts[2], 10);
     const dateAvailable = parts[3].trim();
     const stockAndPrice = parts[4].trim();
@@ -195,7 +253,7 @@ export async function loadFireSaleSkinsFromPdf(
 }
 
 async function resolveCoflCandidateTags(name: string): Promise<string[]> {
-  const cacheKey = `fire-sale:cofl-candidates:v1:${name.toLowerCase()}`;
+  const cacheKey = `fire-sale:cofl-candidates:v2:${name.toLowerCase()}`;
   const cached = getCached<string[]>(cacheKey);
   if (cached !== undefined) return cached;
 
@@ -242,14 +300,18 @@ async function resolveCoflCandidateTags(name: string): Promise<string[]> {
   }
 
   const out = [...tagSet];
-  setCached(cacheKey, out, COFL_CACHE_MS);
+  // Keep negative/empty results short-lived so transient API issues do not
+  // pin items to sheet fallback for an hour.
+  setCached(cacheKey, out, out.length > 0 ? COFL_CACHE_MS : COFL_MISS_CACHE_MS);
   return out;
 }
 
 async function fetchMonthlyMedianByTag(tag: string): Promise<number | null> {
-  const cacheKey = `fire-sale:cofl-median30:v5:${tag}`;
+  const cacheKey = `fire-sale:cofl-median30:v8:${tag}`;
   const cached = getCached<number | null>(cacheKey);
-  if (cached !== undefined) return cached;
+  if (typeof cached === "number" && Number.isFinite(cached) && cached > 0) {
+    return cached;
+  }
 
   const urls = [
     `https://sky.coflnet.com/api/item/price/${encodeURIComponent(tag)}/history/month`,
@@ -272,11 +334,10 @@ async function fetchMonthlyMedianByTag(tag: string): Promise<number | null> {
         ? Math.round(sorted[mid])
         : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 
-    setCached(cacheKey, median, COFL_CACHE_MS);
+    setCached(cacheKey, median, COFL_MEDIAN_CACHE_MS);
     return median;
   }
 
-  setCached(cacheKey, null, COFL_CACHE_MS);
   return null;
 }
 
@@ -284,7 +345,7 @@ export async function enrichSkinsWithCoflMedian(
   rows: FireSaleSkinRow[]
 ): Promise<FireSaleSkinPriceRow[]> {
   const out = new Array<FireSaleSkinPriceRow>(rows.length);
-  const concurrency = 10;
+  const concurrency = 3;
   let cursor = 0;
 
   async function worker(): Promise<void> {
@@ -294,6 +355,18 @@ export async function enrichSkinsWithCoflMedian(
       if (i >= rows.length) return;
 
       const row = rows[i];
+      const manualOverride = MANUAL_PRICE_OVERRIDES[row.cosmetic];
+      if (manualOverride != null) {
+        out[i] = {
+          ...row,
+          coflTag: null,
+          monthlyMedian: null,
+          finalPrice: manualOverride,
+          priceSource: "manual_override",
+        };
+        continue;
+      }
+
       const candidates = await resolveCoflCandidateTags(row.cosmetic);
       let coflTag: string | null = candidates[0] ?? null;
       let median: number | null = null;
@@ -309,8 +382,8 @@ export async function enrichSkinsWithCoflMedian(
         ...row,
         coflTag,
         monthlyMedian: median,
-        finalPrice: median ?? row.sheetPrice,
-        priceSource: median != null ? "cofl_monthly_median" : "sheet",
+        finalPrice: median ?? null,
+        priceSource: median != null ? "cofl_monthly_median" : "missing",
       };
     }
   }
@@ -334,7 +407,10 @@ export async function loadLocalSkinSnapshot(): Promise<FireSaleSkinSnapshot | nu
         typeof parsed.generatedAt === "string"
           ? parsed.generatedAt
           : new Date().toISOString(),
-      rows: parsed.rows as FireSaleSkinPriceRow[],
+      rows: (parsed.rows as FireSaleSkinPriceRow[]).map((row) => ({
+        ...row,
+        cosmetic: normalizeCosmeticName(row.cosmetic),
+      })),
     };
   } catch {
     return null;
@@ -355,6 +431,66 @@ export async function buildAndStoreSkinSnapshot(): Promise<FireSaleSkinSnapshot>
   const snapshot: FireSaleSkinSnapshot = {
     generatedAt: new Date().toISOString(),
     rows: priced,
+  };
+  await saveLocalSkinSnapshot(snapshot);
+  return snapshot;
+}
+
+export async function reloadPricesFromStoredSnapshot(): Promise<FireSaleSkinSnapshot> {
+  const existing = await loadLocalSkinSnapshot();
+  if (!existing || existing.rows.length === 0) {
+    const empty: FireSaleSkinSnapshot = {
+      generatedAt: new Date().toISOString(),
+      rows: [],
+    };
+    await saveLocalSkinSnapshot(empty);
+    return empty;
+  }
+
+  const baseRows: FireSaleSkinRow[] = existing.rows.map((row) => ({
+    owned: row.owned,
+    cosmetic: row.cosmetic,
+    year: row.year,
+    dateAvailable: row.dateAvailable,
+    stock: row.stock,
+    sheetPrice: row.sheetPrice,
+  }));
+
+  const priced = await enrichSkinsWithCoflMedian(baseRows);
+  const snapshot: FireSaleSkinSnapshot = {
+    generatedAt: new Date().toISOString(),
+    rows: priced,
+  };
+  await saveLocalSkinSnapshot(snapshot);
+  return snapshot;
+}
+
+export async function reloadOverridesFromStoredSnapshot(): Promise<FireSaleSkinSnapshot> {
+  const existing = await loadLocalSkinSnapshot();
+  if (!existing || existing.rows.length === 0) {
+    const empty: FireSaleSkinSnapshot = {
+      generatedAt: new Date().toISOString(),
+      rows: [],
+    };
+    await saveLocalSkinSnapshot(empty);
+    return empty;
+  }
+
+  const rows = existing.rows.map((row) => {
+    const manualOverride = MANUAL_PRICE_OVERRIDES[row.cosmetic];
+    if (manualOverride == null) return row;
+    return {
+      ...row,
+      coflTag: null,
+      monthlyMedian: null,
+      finalPrice: manualOverride,
+      priceSource: "manual_override" as const,
+    };
+  });
+
+  const snapshot: FireSaleSkinSnapshot = {
+    generatedAt: new Date().toISOString(),
+    rows,
   };
   await saveLocalSkinSnapshot(snapshot);
   return snapshot;

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import {
-  buildAndStoreSkinSnapshot,
   loadLocalSkinSnapshot,
+  reloadOverridesFromStoredSnapshot,
+  reloadPricesFromStoredSnapshot,
 } from "@/lib/fire-sale-pdf";
 
 export const dynamic = "force-dynamic";
@@ -9,15 +10,27 @@ export const maxDuration = 120;
 
 export async function GET(req: Request) {
   try {
-    const refresh = new URL(req.url).searchParams.get("refresh") === "1";
-    const existing = refresh ? null : await loadLocalSkinSnapshot();
-    const snapshot = existing ?? (await buildAndStoreSkinSnapshot());
+    const params = new URL(req.url).searchParams;
+    const reloadPrices = params.get("reloadPrices") === "1";
+    const reloadOverrides = params.get("reloadOverrides") === "1";
+    const existing = await loadLocalSkinSnapshot();
+    const snapshot = reloadOverrides
+      ? await reloadOverridesFromStoredSnapshot()
+      : reloadPrices
+        ? await reloadPricesFromStoredSnapshot()
+        : existing ?? { generatedAt: new Date().toISOString(), rows: [] };
 
     return NextResponse.json({
       ok: true,
       count: snapshot.rows.length,
       generatedAt: snapshot.generatedAt,
-      source: existing ? "local_snapshot" : "fresh_fetch",
+      source: reloadOverrides
+        ? "overrides_reloaded"
+        : reloadPrices
+          ? "prices_reloaded"
+          : existing
+            ? "local_snapshot"
+            : "empty_snapshot",
       rows: snapshot.rows,
     });
   } catch (error) {
