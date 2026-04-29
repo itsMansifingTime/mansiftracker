@@ -357,3 +357,13 @@ create table if not exists public.ingestions (
 
 create index if not exists ingestions_created_at_idx
   on public.ingestions (created_at desc);
+
+-- Fire sale ownership snapshots keyed by username.
+create table if not exists public.fire_sale_owner_snapshots (
+  username text primary key,
+  owned_keys jsonb not null default '[]'::jsonb,
+  saved_at timestamptz not null default now()
+);
+
+create index if not exists fire_sale_owner_snapshots_saved_at_idx
+  on public.fire_sale_owner_snapshots (saved_at desc);

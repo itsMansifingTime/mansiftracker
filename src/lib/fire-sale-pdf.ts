@@ -3,6 +3,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import pdf from "pdf-parse/lib/pdf-parse";
 import { getCached, setCached } from "./cache";
+import { getSupabaseAdmin } from "./supabase-admin";
 
 const PDF_CACHE_MS = 5 * 60_000;
 const COFL_CACHE_MS = 60 * 60_000;
@@ -525,6 +526,22 @@ export async function saveOwnershipSnapshotForUsername(
   const normalized = normalizeSnapshotUsername(username);
   const ownedKeys = rows.filter((row) => row.owned).map((row) => makeOwnershipKey(row));
   const savedAt = new Date().toISOString();
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    const { error } = await supabase.from("fire_sale_owner_snapshots").upsert(
+      {
+        username: normalized,
+        saved_at: savedAt,
+        owned_keys: ownedKeys,
+      },
+      { onConflict: "username" }
+    );
+    if (error) {
+      throw new Error(`Failed saving owner snapshot to Supabase: ${error.message}`);
+    }
+    return { savedAt, ownedCount: ownedKeys.length };
+  }
+
   const store = await loadOwnershipSnapshotStore();
   store[normalized] = { savedAt, ownedKeys };
   await saveOwnershipSnapshotStore(store);
@@ -532,6 +549,26 @@ export async function saveOwnershipSnapshotForUsername(
 }
 
 export async function listOwnershipSnapshotUsernames(): Promise<FireSaleUserOwnershipSummary[]> {
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("fire_sale_owner_snapshots")
+      .select("username,saved_at,owned_keys");
+    if (error) {
+      throw new Error(`Failed listing owner snapshots from Supabase: ${error.message}`);
+    }
+    return (data ?? [])
+      .map((row) => ({
+        username: String((row as { username?: unknown }).username ?? ""),
+        savedAt: String((row as { saved_at?: unknown }).saved_at ?? ""),
+        ownedCount: Array.isArray((row as { owned_keys?: unknown }).owned_keys)
+          ? ((row as { owned_keys?: unknown[] }).owned_keys?.length ?? 0)
+          : 0,
+      }))
+      .filter((row) => row.username.length > 0)
+      .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  }
+
   const store = await loadOwnershipSnapshotStore();
   return Object.entries(store)
     .map(([username, snapshot]) => ({
@@ -547,6 +584,33 @@ export async function applyOwnershipSnapshotFromUsername(
   rows: FireSaleSkinPriceRow[]
 ): Promise<{ rows: FireSaleSkinPriceRow[]; savedAt: string; ownedCount: number } | null> {
   const normalized = normalizeSnapshotUsername(username);
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("fire_sale_owner_snapshots")
+      .select("saved_at,owned_keys")
+      .eq("username", normalized)
+      .maybeSingle();
+    if (error) {
+      throw new Error(`Failed loading owner snapshot from Supabase: ${error.message}`);
+    }
+    if (!data) return null;
+    const ownedKeysRaw = (data as { owned_keys?: unknown }).owned_keys;
+    const ownedKeys = Array.isArray(ownedKeysRaw)
+      ? ownedKeysRaw.filter((x): x is string => typeof x === "string")
+      : [];
+    const ownedSet = new Set(ownedKeys);
+    const updatedRows = rows.map((row) => ({
+      ...row,
+      owned: ownedSet.has(makeOwnershipKey(row)),
+    }));
+    return {
+      rows: updatedRows,
+      savedAt: String((data as { saved_at?: unknown }).saved_at ?? new Date().toISOString()),
+      ownedCount: ownedKeys.length,
+    };
+  }
+
   const store = await loadOwnershipSnapshotStore();
   const snapshot = store[normalized];
   if (!snapshot) return null;
