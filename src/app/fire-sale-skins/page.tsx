@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Nav } from "@/components/Nav";
 
 type FireSaleRow = {
@@ -14,6 +14,12 @@ type FireSaleRow = {
   monthlyMedian: number | null;
   finalPrice: number | null;
   priceSource: "manual_override" | "cofl_monthly_median" | "missing";
+};
+
+type OwnershipSnapshotUser = {
+  username: string;
+  savedAt: string;
+  ownedCount: number;
 };
 
 type SortKey =
@@ -123,8 +129,9 @@ const PET_NAMES = [
   "wither skeleton",
 ];
 
-function getSkinType(cosmetic: string): "pet" | "armor" {
+function getSkinType(cosmetic: string): "pet" | "armor" | "backpack" {
   const n = cosmetic.toLowerCase();
+  if (n.includes("backpack")) return "backpack";
   return PET_NAMES.some((pet) => n.includes(pet)) ? "pet" : "armor";
 }
 
@@ -164,6 +171,7 @@ export default function FireSaleSkinsPage() {
   const [loaded, setLoaded] = useState(false);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("finalPrice");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [showOwned, setShowOwned] = useState(true);
@@ -173,6 +181,10 @@ export default function FireSaleSkinsPage() {
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
   const [showPetSkins, setShowPetSkins] = useState(true);
   const [showArmorSkins, setShowArmorSkins] = useState(true);
+  const [showBackpackSkins, setShowBackpackSkins] = useState(true);
+  const [username, setUsername] = useState("");
+  const [snapshotBusy, setSnapshotBusy] = useState(false);
+  const [savedUsers, setSavedUsers] = useState<OwnershipSnapshotUser[]>([]);
 
   const availableYears = Array.from(new Set(rows.map((r) => r.year))).sort((a, b) => b - a);
 
@@ -182,14 +194,39 @@ export default function FireSaleSkinsPage() {
     );
   }
 
+  async function persistRows(nextRows: FireSaleRow[]) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/fire-sale-skins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rows: nextRows,
+          generatedAt: generatedAt ?? new Date().toISOString(),
+        }),
+      });
+      const json = (await res.json()) as { ok: boolean; error?: string; generatedAt?: string };
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      if (json.generatedAt) setGeneratedAt(json.generatedAt);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
+
   function toggleOwned(target: FireSaleRow) {
-    setRows((prev) =>
-      prev.map((row) =>
+    setRows((prev) => {
+      const nextRows = prev.map((row) =>
         row.cosmetic === target.cosmetic && row.dateAvailable === target.dateAvailable
           ? { ...row, owned: !row.owned }
           : row
-      )
-    );
+      );
+      void persistRows(nextRows);
+      return nextRows;
+    });
   }
 
   function toggleSort(nextKey: SortKey) {
@@ -205,7 +242,10 @@ export default function FireSaleSkinsPage() {
     const matchesYear = selectedYears.length === 0 || selectedYears.includes(r.year);
     if (!matchesYear) return false;
     const skinType = getSkinType(r.cosmetic);
-    const matchesType = (skinType === "pet" && showPetSkins) || (skinType === "armor" && showArmorSkins);
+    const matchesType =
+      (skinType === "pet" && showPetSkins) ||
+      (skinType === "armor" && showArmorSkins) ||
+      (skinType === "backpack" && showBackpackSkins);
     if (!matchesType) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -319,6 +359,99 @@ export default function FireSaleSkinsPage() {
     }
   }
 
+  async function saveOwnershipSnapshot() {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setError("Enter a username to save ownership snapshot.");
+      return;
+    }
+    setSnapshotBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/fire-sale-skins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          saveUserSnapshot: true,
+          username: trimmed,
+          rows,
+        }),
+      });
+      const json = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        username?: string;
+        ownedCount?: number;
+      };
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      setSource(
+        `ownership_saved:${json.username ?? trimmed}:${json.ownedCount ?? 0}`
+      );
+      await loadSavedUsers();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSnapshotBusy(false);
+    }
+  }
+
+  async function loadOwnershipSnapshot() {
+    const trimmed = username.trim();
+    if (!trimmed) {
+      setError("Enter a username to load ownership snapshot.");
+      return;
+    }
+    setSnapshotBusy(true);
+    setError(null);
+    try {
+      const q = `?loadUserSnapshot=1&username=${encodeURIComponent(trimmed)}`;
+      const res = await fetch(`/api/fire-sale-skins${q}`, { cache: "no-store" });
+      const json = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        rows?: FireSaleRow[];
+        generatedAt?: string;
+        source?: string;
+      };
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      setRows(json.rows ?? []);
+      setGeneratedAt(json.generatedAt ?? null);
+      setSource(json.source ?? null);
+      setLoaded(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSnapshotBusy(false);
+    }
+  }
+
+  async function loadSavedUsers() {
+    try {
+      const res = await fetch("/api/fire-sale-skins?listUserSnapshots=1", {
+        cache: "no-store",
+      });
+      const json = (await res.json()) as {
+        ok: boolean;
+        error?: string;
+        usernames?: OwnershipSnapshotUser[];
+      };
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      setSavedUsers(json.usernames ?? []);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  useEffect(() => {
+    void loadSavedUsers();
+  }, []);
+
   return (
     <div className="flex min-h-full flex-1 flex-col bg-zinc-950 text-zinc-100">
       <Nav />
@@ -363,6 +496,53 @@ export default function FireSaleSkinsPage() {
               Showing {filteredRows.length}/{rows.length} rows
             </span>
           ) : null}
+          {saving ? <span className="text-xs text-zinc-500">Saving changes…</span> : null}
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3 sm:flex-row sm:items-center">
+          <select
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none focus:border-sky-500 sm:max-w-xs"
+          >
+            <option value="">Select saved username</option>
+            {savedUsers.map((u) => (
+              <option key={u.username} value={u.username}>
+                {u.username} ({u.ownedCount})
+              </option>
+            ))}
+          </select>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username for ownership snapshot"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm text-zinc-100 outline-none placeholder:text-zinc-500 focus:border-sky-500 sm:max-w-sm"
+          />
+          <button
+            type="button"
+            onClick={() => void loadSavedUsers()}
+            disabled={snapshotBusy}
+            className="rounded-lg bg-zinc-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Refresh users
+          </button>
+          <button
+            type="button"
+            onClick={() => void saveOwnershipSnapshot()}
+            disabled={snapshotBusy || rows.length === 0}
+            className="rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Save ownership snapshot
+          </button>
+          <button
+            type="button"
+            onClick={() => void loadOwnershipSnapshot()}
+            disabled={snapshotBusy}
+            className="rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Load ownership snapshot
+          </button>
         </div>
 
         <div className="flex flex-col gap-3 rounded-xl border border-zinc-800 bg-zinc-900/30 p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -434,6 +614,14 @@ export default function FireSaleSkinsPage() {
                 label="Show armor skins"
               />
               Armor skins
+            </label>
+            <label className="inline-flex items-center gap-2">
+              <ToggleSwitch
+                checked={showBackpackSkins}
+                onToggle={() => setShowBackpackSkins((v) => !v)}
+                label="Show backpack skins"
+              />
+              Backpack skins
             </label>
           </div>
         ) : null}

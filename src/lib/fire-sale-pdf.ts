@@ -31,11 +31,12 @@ export type FireSaleSkinPriceRow = FireSaleSkinRow & {
 };
 
 const MANUAL_PRICE_OVERRIDES: Record<string, number> = {
-  "Derpy Rock Skin": 8_000_000_000,
-  "Embarrassed Rock Skin": 9_000_000_000,
+  "Derpy Rock Skin": 5_500_000_000,
+  "Embarrassed Rock Skin": 6_000_000_000,
   "Smiling Rock Skin": 3_500_000_000,
-  "Laughing Rock Skin": 12_000_000_000,
-  "Thinking Rock Skin": 6_000_000_000,
+  "Laughing Rock Skin": 6_000_000_000,
+  "Thinking Rock Skin": 4_000_000_000,
+  "Cool Rock Skin": 3_000_000_000,
   "Shimmer Skin (Unstable)": 500_000_000,
   "Shimmer Skin (Holy)": 500_000_000,
   "Shimmer Skin (Old)": 500_000_000,
@@ -57,11 +58,59 @@ const MANUAL_PRICE_OVERRIDES: Record<string, number> = {
   "Purple Sheep Skin": 7_250_000_000,
   "Pink Sheep Skin": 9_600_000_000,
   "Black Sheep Skin": 13_500_000_000,
+  "Baby Skin (Superior)": 2_000_000_000,
+  "Pretty Rabbit Skin": 1_500_000_000,
+  "Puppy Skin": 700_000_000,
+  "Watcher Guardian Skin": 1_200_000_000,
+  "Icicle Skin": 500_000_000,
+  "Twilight Tiger Skin": 3_000_000_000,
+  "Baby Skin (Old)": 3_000_000_000,
+  "Baby Skin (Holy)": 3_000_000_000,
+  "Baby Skin (Unstable)": 5_000_000_000,
+  "Dark Wither Skeleton Skin": 650_000_000,
+  "Fortified Silverfish Skin": 200_000_000,
+  "Grown-up Baby Yeti Skin": 1_500_000_000,
+  "Zombie Skeleton Horse Skin": 300_000_000,
+  "Neon Red Ender Dragon Skin": 400_000_000,
+  "Neon Purple Ender Dragon Skin": 400_000_000,
+  "Neon Blue Ender Dragon Skin": 400_000_000,
+  "Red Elephant Skin": 500_000_000,
+  "Purple Elephant Skin": 500_000_000,
+  "Green Elephant Skin": 500_000_000,
+  "Crowned Rune III": 44_144_673,
+  "Turkey Rune III": 32_971_999,
+  "Peafowl Rune III": 38_292_214,
+  "Great Gats Bee Skin": 350_000_000,
+  "BeeDazzled Bee Skin": 82_000_000,
+  "WasaBee Bee Skin": 285_000_000,
+  "Plushie Reindeer Skin": 50_000_000,
+  "Sun Enderman Skin": 50_000_000,
+  "Shimmer Skin (Protector)": 1_400_000_000,
+  "Enchanted Armadillo Skin": 150_000_000,
+  "Radiant Endermite Skin": 87_000_000,
+  "Rat-stronaut Rat Skin": 90_000_000,
+  "Reindeer Backpack Skin": 20_000_000,
+  "Fading Rainbow Rune III": 45_000_000,
+  "Baby Skin": 50_000_000,
+  "Black Widow Skin": 500_000_000,
+  "Spooky Enderman Skin": 1_300_000_000,
 };
 
 export type FireSaleSkinSnapshot = {
   generatedAt: string;
   rows: FireSaleSkinPriceRow[];
+};
+
+type FireSaleUserOwnershipSnapshot = {
+  savedAt: string;
+  ownedKeys: string[];
+};
+
+type FireSaleUserOwnershipStore = Record<string, FireSaleUserOwnershipSnapshot>;
+export type FireSaleUserOwnershipSummary = {
+  username: string;
+  savedAt: string;
+  ownedCount: number;
 };
 
 type CoflSearchResult = {
@@ -80,10 +129,45 @@ type CoflMonthlyHistoryPoint = {
   volume?: number;
 };
 
+type PersistentMedianCache = Record<string, number>;
+let persistentMedianCache: PersistentMedianCache | null = null;
+
+function getPersistentMedianCachePath(): string {
+  return join(process.cwd(), "data", "cofl-median-cache.json");
+}
+
+async function loadPersistentMedianCache(): Promise<PersistentMedianCache> {
+  if (persistentMedianCache) return persistentMedianCache;
+  const path = getPersistentMedianCachePath();
+  try {
+    const raw = await readFile(path, "utf8");
+    const parsed = JSON.parse(raw) as PersistentMedianCache;
+    persistentMedianCache = parsed && typeof parsed === "object" ? parsed : {};
+    return persistentMedianCache;
+  } catch {
+    persistentMedianCache = {};
+    return persistentMedianCache;
+  }
+}
+
+async function getPersistedMedian(tag: string): Promise<number | null> {
+  const cache = await loadPersistentMedianCache();
+  const value = cache[tag];
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+async function setPersistedMedian(tag: string, median: number): Promise<void> {
+  const cache = await loadPersistentMedianCache();
+  cache[tag] = median;
+  await mkdir(join(process.cwd(), "data"), { recursive: true });
+  await writeFile(getPersistentMedianCachePath(), JSON.stringify(cache, null, 2), "utf8");
+}
+
 function normalizeCosmeticName(name: string): string {
   const overrides: Record<string, string> = {
     "Teal Skin": "Teal Space Skin",
     "Red Skin": "Red Space Skin",
+    "Black Ice Skin": "Black Ice Space Skin",
   };
   return overrides[name] ?? name;
 }
@@ -100,6 +184,10 @@ function getManualCoflTags(name: string): string[] {
     "Light Blue Sheep Skin": ["PET_SKIN_SHEEP_LIGHT_BLUE", "PET_SKIN_SHEEP_BLUE"],
     "Blue Sheep Skin": ["PET_SKIN_SHEEP_BLUE", "PET_SKIN_SHEEP_LIGHT_BLUE"],
     "Pretty Rabbit Skin": ["PET_SKIN_RABBIT"],
+    "Fading Rainbow Rune III": ["AXE_RAINBOW:3"],
+    "Crowned Rune III": ["CROWNED_RUNE;3"],
+    "Turkey Rune III": ["TURKEY_RUNE;3"],
+    "Peafowl Rune III": ["PEAFOWL_RUNE;3"],
   };
   if (direct[name]) return direct[name];
 
@@ -312,6 +400,11 @@ async function fetchMonthlyMedianByTag(tag: string): Promise<number | null> {
   if (typeof cached === "number" && Number.isFinite(cached) && cached > 0) {
     return cached;
   }
+  const persisted = await getPersistedMedian(tag);
+  if (persisted != null) {
+    setCached(cacheKey, persisted, COFL_MEDIAN_CACHE_MS);
+    return persisted;
+  }
 
   const urls = [
     `https://sky.coflnet.com/api/item/price/${encodeURIComponent(tag)}/history/month`,
@@ -335,6 +428,7 @@ async function fetchMonthlyMedianByTag(tag: string): Promise<number | null> {
         : Math.round((sorted[mid - 1] + sorted[mid]) / 2);
 
     setCached(cacheKey, median, COFL_MEDIAN_CACHE_MS);
+    await setPersistedMedian(tag, median);
     return median;
   }
 
@@ -394,6 +488,74 @@ export async function enrichSkinsWithCoflMedian(
 
 function getSnapshotPath(): string {
   return join(process.cwd(), "data", "fire-sale-skins-local.json");
+}
+
+function getOwnershipSnapshotsPath(): string {
+  return join(process.cwd(), "data", "fire-sale-user-ownership-snapshots.json");
+}
+
+function makeOwnershipKey(row: Pick<FireSaleSkinRow, "cosmetic" | "dateAvailable">): string {
+  return `${row.cosmetic}::${row.dateAvailable}`;
+}
+
+function normalizeSnapshotUsername(username: string): string {
+  return username.trim().toLowerCase();
+}
+
+async function loadOwnershipSnapshotStore(): Promise<FireSaleUserOwnershipStore> {
+  try {
+    const raw = await readFile(getOwnershipSnapshotsPath(), "utf8");
+    const parsed = JSON.parse(raw) as FireSaleUserOwnershipStore;
+    if (!parsed || typeof parsed !== "object") return {};
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+async function saveOwnershipSnapshotStore(store: FireSaleUserOwnershipStore): Promise<void> {
+  await mkdir(join(process.cwd(), "data"), { recursive: true });
+  await writeFile(getOwnershipSnapshotsPath(), JSON.stringify(store, null, 2), "utf8");
+}
+
+export async function saveOwnershipSnapshotForUsername(
+  username: string,
+  rows: FireSaleSkinPriceRow[]
+): Promise<{ savedAt: string; ownedCount: number }> {
+  const normalized = normalizeSnapshotUsername(username);
+  const ownedKeys = rows.filter((row) => row.owned).map((row) => makeOwnershipKey(row));
+  const savedAt = new Date().toISOString();
+  const store = await loadOwnershipSnapshotStore();
+  store[normalized] = { savedAt, ownedKeys };
+  await saveOwnershipSnapshotStore(store);
+  return { savedAt, ownedCount: ownedKeys.length };
+}
+
+export async function listOwnershipSnapshotUsernames(): Promise<FireSaleUserOwnershipSummary[]> {
+  const store = await loadOwnershipSnapshotStore();
+  return Object.entries(store)
+    .map(([username, snapshot]) => ({
+      username,
+      savedAt: snapshot.savedAt,
+      ownedCount: snapshot.ownedKeys.length,
+    }))
+    .sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+
+export async function applyOwnershipSnapshotFromUsername(
+  username: string,
+  rows: FireSaleSkinPriceRow[]
+): Promise<{ rows: FireSaleSkinPriceRow[]; savedAt: string; ownedCount: number } | null> {
+  const normalized = normalizeSnapshotUsername(username);
+  const store = await loadOwnershipSnapshotStore();
+  const snapshot = store[normalized];
+  if (!snapshot) return null;
+  const ownedSet = new Set(snapshot.ownedKeys);
+  const updatedRows = rows.map((row) => ({
+    ...row,
+    owned: ownedSet.has(makeOwnershipKey(row)),
+  }));
+  return { rows: updatedRows, savedAt: snapshot.savedAt, ownedCount: snapshot.ownedKeys.length };
 }
 
 export async function loadLocalSkinSnapshot(): Promise<FireSaleSkinSnapshot | null> {
@@ -457,9 +619,24 @@ export async function reloadPricesFromStoredSnapshot(): Promise<FireSaleSkinSnap
   }));
 
   const priced = await enrichSkinsWithCoflMedian(baseRows);
+  const existingByKey = new Map(
+    existing.rows.map((row) => [`${row.cosmetic}::${row.dateAvailable}`, row] as const)
+  );
+  const merged = priced.map((row) => {
+    if (row.priceSource !== "missing") return row;
+    const prev = existingByKey.get(`${row.cosmetic}::${row.dateAvailable}`);
+    if (!prev || prev.monthlyMedian == null) return row;
+    return {
+      ...row,
+      coflTag: prev.coflTag,
+      monthlyMedian: prev.monthlyMedian,
+      finalPrice: prev.monthlyMedian,
+      priceSource: "cofl_monthly_median" as const,
+    };
+  });
   const snapshot: FireSaleSkinSnapshot = {
     generatedAt: new Date().toISOString(),
-    rows: priced,
+    rows: merged,
   };
   await saveLocalSkinSnapshot(snapshot);
   return snapshot;
